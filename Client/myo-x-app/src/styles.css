@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+@plugin "daisyui" {
+    themes: night --default;
+}
+
+* {
+    font-family: "Poppins", sans-serif;
+}
