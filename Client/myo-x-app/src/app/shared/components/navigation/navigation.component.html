@@ -1,7 +1,7 @@
 <header class="w-full h-14 bg-base-300 flex items-center">
     <div class="fixed z-30 flex justify-between w-full px-5">
         <div class="flex space-x-5">
-            <div class="flex items-center">
+            <div class="flex items-center lg:hidden">
                 <button (click)="toggle()">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -22,14 +22,19 @@
                 </button>
             </div>
 
-            <div class="flex items-center">
-                <img class="w-10 h-10 shrink-0" src="/myo-x.svg" alt="myo-x" />
+            <div class="flex items-center lg:hidden">
+                <a routerLink="/"
+                    ><img
+                        class="w-10 h-10 shrink-0"
+                        src="/myo-x.svg"
+                        alt="myo-x"
+                /></a>
             </div>
         </div>
 
         <div class="flex space-x-7">
-            <div class="flex items-center lg:hidden">
-                <button>
+            <div *ngIf="isAvailableForInstall()" class="flex items-center">
+                <button (click)="installApp()">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -50,9 +55,15 @@
             </div>
 
             <div class="flex items-center">
+                @if(isAuthenticated()) {
+                <span (click)="logout()" class="font-bold"
+                    ><a routerLink="/">Logout</a></span
+                >
+                } @else {
                 <span class="font-bold"
                     ><a routerLink="/auth/login">Login</a></span
                 >
+                }
             </div>
         </div>
     </div>
@@ -91,7 +102,7 @@
 
         <div>
             <ul class="space-y-3 font-bold">
-                <li>Dashboard</li>
+                <li><a routerLink="/dashboard">Dashboard</a></li>
                 <li>Workout</li>
             </ul>
         </div>

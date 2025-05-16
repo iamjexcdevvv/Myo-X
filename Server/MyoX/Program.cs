@@ -12,15 +12,15 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
-var MyoXAllowedOrigins = "_myo-x-allowed-origins";
+var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? throw new Exception("Allowed origins not found");
 
 // Add services to the container.
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyoXAllowedOrigins, policy =>
+    options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "https://localhost:8080")
+        policy.WithOrigins(allowedOrigins)
         .AllowCredentials()
         .AllowAnyMethod()
         .AllowAnyHeader();
@@ -97,7 +97,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(MyoXAllowedOrigins);
+app.UseCors("CorsPolicy");
 
 app.UseOutputCache();
 

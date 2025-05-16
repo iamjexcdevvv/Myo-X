@@ -12,3 +12,5 @@ Infrastructure/Migrations
 
 MyoX/bin
 MyoX/obj
+
+appsettings.Production.json

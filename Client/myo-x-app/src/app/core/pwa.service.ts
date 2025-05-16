@@ -1,10 +1,19 @@
-import { Injectable } from "@angular/core";
+import { Injectable, signal } from "@angular/core";
 import { SwUpdate, VersionReadyEvent } from "@angular/service-worker";
 import { filter } from "rxjs/operators";
 
 @Injectable({ providedIn: "root" })
-export class PromptUpdateService {
+export class PWAService {
+    installAvailable = signal(false);
+    deferredPrompt: any;
+
     constructor(private swUpdate: SwUpdate) {
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            this.deferredPrompt = e;
+            this.installAvailable.set(true);
+        });
+
         if (swUpdate.isEnabled) {
             // Listen for version updates
             swUpdate.versionUpdates
@@ -28,5 +37,15 @@ export class PromptUpdateService {
                 window.location.reload();
             }
         });
+    }
+
+    promptInstall(): void {
+        if (this.deferredPrompt) {
+            this.deferredPrompt.prompt();
+            this.deferredPrompt.userChoice.finally(() => {
+                this.deferredPrompt = null;
+                this.installAvailable.set(false);
+            });
+        }
     }
 }

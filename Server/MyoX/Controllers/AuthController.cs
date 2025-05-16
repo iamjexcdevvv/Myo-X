@@ -31,6 +31,7 @@ namespace MyoX.Controllers
 
             Response.Cookies.Append("Myo-X-Access-Token", result.AccessToken!, new CookieOptions()
             {
+                Secure = true,
                 HttpOnly = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddMinutes(10)
@@ -38,6 +39,7 @@ namespace MyoX.Controllers
 
             Response.Cookies.Append("Myo-X-Refresh-Token", result.RefreshToken!, new CookieOptions()
             {
+                Secure = true,
                 HttpOnly = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddDays(7)
@@ -96,8 +98,8 @@ namespace MyoX.Controllers
 
             Response.Cookies.Append("Myo-X-Access-Token", result.AccessToken!, new CookieOptions()
             {
-                HttpOnly = true,
                 Secure = true,
+                HttpOnly = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });

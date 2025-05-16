@@ -1,7 +1,7 @@
 import { Routes } from "@angular/router";
-import { LoginComponent } from "./auth/auth-login.component";
 import { HomeComponent } from "./home/home.component";
-import { RegisterComponent } from "./auth/auth-register.component";
+import { AuthGuard } from "./auth.guard";
+import { PageNotFoundComponent } from "./404/page-not-found.component";
 
 export const routes: Routes = [
     {
@@ -13,12 +13,27 @@ export const routes: Routes = [
         children: [
             {
                 path: "login",
-                component: LoginComponent,
+                loadComponent: () =>
+                    import("./auth/auth-login.component").then(
+                        (c) => c.LoginComponent
+                    ),
             },
             {
                 path: "register",
-                component: RegisterComponent,
+                loadComponent: () =>
+                    import("./auth/auth-register.component").then(
+                        (c) => c.RegisterComponent
+                    ),
             },
         ],
     },
+    {
+        path: "dashboard",
+        loadComponent: () =>
+            import("./dashboard/dashboard.component").then(
+                (c) => c.DashboardComponent
+            ),
+        canActivate: [AuthGuard],
+    },
+    { path: "**", component: PageNotFoundComponent },
 ];

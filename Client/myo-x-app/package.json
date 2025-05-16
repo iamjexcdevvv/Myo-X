@@ -3,9 +3,9 @@
     "version": "0.0.0",
     "scripts": {
         "ng": "ng",
-        "start": "ng serve",
+        "dev": "ng serve",
         "build:pwa": "ng build --configuration production",
-        "serve:pwa": "npx http-server -p 8080 -c-1 dist/myo-x-app/browser",
+        "serve:pwa": "npx http-server dist/myo-x-app/browser -p 8080 -S -C localhost+2.pem -K localhost+2-key.pem",
         "watch": "ng build --watch --configuration development",
         "test": "ng test"
     },

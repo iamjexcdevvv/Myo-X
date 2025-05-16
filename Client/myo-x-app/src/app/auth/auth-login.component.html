@@ -24,6 +24,12 @@
                     <div class="text-error text-xs">Email is required.</div>
                     } @if (loginAuth.get('email')?.hasError('email')) {
                     <div class="text-error text-xs">Invalid email format.</div>
+                    } @if
+                    (loginAuth.get('email')?.errors?.['emailBackendValidator'])
+                    {
+                    <div class="text-error text-xs">
+                        {{loginAuth.get('email')?.errors?.['emailBackendValidator']}}
+                    </div>
                     }
                 </div>
                 }
@@ -45,6 +51,12 @@
                 <div class="my-3">
                     @if (loginAuth.get('password')?.hasError('required')) {
                     <div class="text-error text-xs">Password is required.</div>
+                    } @if
+                    (loginAuth.get('password')?.errors?.['passwordBackendValidator'])
+                    {
+                    <div class="text-error text-xs">
+                        {{loginAuth.get('password')?.errors?.['passwordBackendValidator']}}
+                    </div>
                     }
                 </div>
                 }

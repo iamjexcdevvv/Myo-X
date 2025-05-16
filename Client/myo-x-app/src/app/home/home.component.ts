@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { NavigationComponent } from "../shared/navigation/navigation.component";
+import { NavigationComponent } from "../shared/components/navigation/navigation.component";
 
 @Component({
     selector: "home",
