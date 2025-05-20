@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.DTO;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Service;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;

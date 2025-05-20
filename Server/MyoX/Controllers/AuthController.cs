@@ -1,9 +1,7 @@
-﻿using System.Threading.Tasks;
-using Application.DTO;
+﻿using Application.DTO;
 using Application.Features.Command;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MyoX.Controllers
@@ -93,7 +91,7 @@ namespace MyoX.Controllers
 
             if (!result.Success)
             {
-                return BadRequest("Invalid refresh token");
+                return Unauthorized("Invalid refresh token");
             }
 
             Response.Cookies.Append("Myo-X-Access-Token", result.AccessToken!, new CookieOptions()

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.DTO;
+﻿using Application.DTO;
 using Application.Result;
-using Application.Result.Common;
 using Domain.Entities;
 using Domain.Service;
 using FluentValidation;
@@ -15,7 +9,7 @@ using Mediator;
 
 namespace Application.Features.Command
 {
-    public class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, AuthResult>
+    public class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, TokenResultResponse>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -28,7 +22,7 @@ namespace Application.Features.Command
             _validator = validator;
             _tokenService = tokenService;
         }
-        public async ValueTask<AuthResult> Handle(LoginUserCommand command, CancellationToken cancellationToken)
+        public async ValueTask<TokenResultResponse> Handle(LoginUserCommand command, CancellationToken cancellationToken)
         {
             ValidationResult result = await _validator.ValidateAsync(command.request);
 
@@ -39,7 +33,7 @@ namespace Application.Features.Command
                     .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage)
                     .ToList());
 
-                return new AuthResult
+                return new TokenResultResponse
                 {
                     Success = false,
                     Errors = failures
@@ -50,7 +44,7 @@ namespace Application.Features.Command
 
             if (user == null)
             {
-                return new AuthResult
+                return new TokenResultResponse
                 {
                     Success = false,
                     Errors = new Dictionary<string, List<string>>
@@ -63,7 +57,7 @@ namespace Application.Features.Command
 
             if (!BCrypt.Net.BCrypt.Verify(command.request.Password, user.HashedPassword))
             {
-                return new AuthResult
+                return new TokenResultResponse
                 {
                     Success = false,
                     Errors = new Dictionary<string, List<string>>
@@ -80,7 +74,7 @@ namespace Application.Features.Command
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await _userRepository.SaveUserDataChanges();
 
-            return new AuthResult
+            return new TokenResultResponse
             {
                 Success = true,
                 AccessToken = accessToken,

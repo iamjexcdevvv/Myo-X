@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.DTO;
+﻿using Application.DTO;
 using Application.Result.Common;
-using Application.Validators;
 using Domain.Entities;
 using Domain.Service;
 using FluentValidation;
@@ -15,7 +9,7 @@ using Mediator;
 
 namespace Application.Features.Command
 {
-    public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, ApiResult>
+    public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, ResultResponse>
     {
         private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
@@ -26,7 +20,7 @@ namespace Application.Features.Command
             _mapper = mapper;
             _validator = validator;
         }
-        public async ValueTask<ApiResult> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
+        public async ValueTask<ResultResponse> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
         {
             ValidationResult result = await _validator.ValidateAsync(command.request);
 
@@ -37,7 +31,7 @@ namespace Application.Features.Command
                     .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage)
                     .ToList());
 
-                return new ApiResult
+                return new ResultResponse
                 {
                     Success = false,
                     Errors = failures
@@ -48,7 +42,7 @@ namespace Application.Features.Command
 
             if (isUserFound != null)
             {
-                return new ApiResult
+                return new ResultResponse
                 {
                     Success = false,
                     Errors = new Dictionary<string, List<string>>
@@ -63,7 +57,7 @@ namespace Application.Features.Command
 
             await _userRepo.RegisterUser(newUser);
 
-            return new ApiResult
+            return new ResultResponse
             {
                 Success = true
             };

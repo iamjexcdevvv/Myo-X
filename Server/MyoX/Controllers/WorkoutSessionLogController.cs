@@ -4,7 +4,6 @@ using Application.Features.Query;
 using Application.Result.Common;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 
@@ -29,7 +28,7 @@ namespace MyoX.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResult>> logWorkoutSession(WorkoutSessionEntityDTO request)
+        public async Task<ActionResult<ResultResponse>> logWorkoutSession(WorkoutSessionEntityDTO request)
         {
             return await _mediator.Send(new SaveWorkoutSessionLogCommand(request, HttpContext));
         }

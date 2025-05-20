@@ -1,0 +1,44 @@
+{
+	"name": "my-pwa-app",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"lint": "eslint .",
+		"preview": "vite preview",
+		"generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 public/myo-x.svg"
+	},
+	"dependencies": {
+		"@hookform/resolvers": "^5.0.1",
+		"@tailwindcss/vite": "^4.1.4",
+		"dexie": "^4.0.11",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"react-hook-form": "^7.56.1",
+		"react-router": "^7.5.2",
+		"react-toastify": "^11.0.5",
+		"tailwindcss": "^4.1.4",
+		"zod": "^3.24.3"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.22.0",
+		"@types/node": "^22.15.17",
+		"@types/react": "^19.0.10",
+		"@types/react-dom": "^19.0.4",
+		"@types/react-toastify": "^4.0.2",
+		"@vite-pwa/assets-generator": "^1.0.0",
+		"@vitejs/plugin-react": "^4.3.4",
+		"daisyui": "^5.0.28",
+		"eslint": "^9.22.0",
+		"eslint-plugin-react-hooks": "^5.2.0",
+		"eslint-plugin-react-refresh": "^0.4.19",
+		"globals": "^16.0.0",
+		"typescript": "~5.7.2",
+		"typescript-eslint": "^8.26.1",
+		"vite": "^6.3.1",
+		"vite-plugin-mkcert": "^1.17.8",
+		"vite-plugin-pwa": "^1.0.0"
+	}
+}

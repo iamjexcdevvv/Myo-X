@@ -5,81 +5,23 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Text.Json;
-using System.Net;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
+using MyoX.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
-var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? throw new Exception("Allowed origins not found");
 
 // Add services to the container.
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy.WithOrigins(allowedOrigins)
-        .AllowCredentials()
-        .AllowAnyMethod()
-        .AllowAnyHeader();
-    });
-});
+builder.Services.AddCorsMiddleware(builder.Configuration);
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = builder.Configuration["jwt:issuer"],
-        ValidAudience = builder.Configuration["jwt:audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["jwt:key"]!)),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidateLifetime = true,
-    };
+builder.Services.AddAuthenticationMiddleware(builder.Configuration);
 
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            if (context.Request.Cookies != null &&
-                context.Request.Cookies.TryGetValue("Myo-X-Access-Token", out var token) &&
-                !string.IsNullOrEmpty(token))
-            {
-                context.Token = token;
-            }
-            return Task.CompletedTask;
-        }
-    };
-});
-
-builder.Services.AddOutputCache(options =>
-{
-    options.AddPolicy("UserWorkoutSessions", builder =>
-    {
-        builder
-        .Expire(TimeSpan.FromMinutes(5))
-        .SetVaryByHeader("Authorization")
-        .Tag("workout-sessions-cache");
-    });
-});
+builder.Services.AddOutputCacheMiddleware(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
+builder.Services.AddControllersMiddleware(builder.Configuration);
+    
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 

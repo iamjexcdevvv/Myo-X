@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Result.Common;
+﻿using Application.Result.Common;
 using Domain.Entities;
 using Domain.Service;
-using Mapster;
 using MapsterMapper;
 using Mediator;
 using Microsoft.AspNetCore.OutputCaching;
 
 namespace Application.Features.Command
 {
-    public class SaveWorkoutSessionLogCommandHandler : ICommandHandler<SaveWorkoutSessionLogCommand, ApiResult>
+    public class SaveWorkoutSessionLogCommandHandler : ICommandHandler<SaveWorkoutSessionLogCommand, ResultResponse>
     {
         private readonly IWorkoutSessionLogRepository _workoutSessionLogRepository;
         private readonly IUserRepository _userRepository;
@@ -26,13 +20,13 @@ namespace Application.Features.Command
             _userRepository = userRepository;
             _outputCacheStore = outputCacheStore;
         }
-        public async ValueTask<ApiResult> Handle(SaveWorkoutSessionLogCommand command, CancellationToken cancellationToken)
+        public async ValueTask<ResultResponse> Handle(SaveWorkoutSessionLogCommand command, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetUserByRefreshTokenAsync(command.HttpContext.Request.Cookies["Myo-X-Refresh-Token"]!);
 
             if (user == null)
             {
-                return new ApiResult
+                return new ResultResponse
                 {
                     Success = false
                 };
@@ -50,7 +44,7 @@ namespace Application.Features.Command
             await _workoutSessionLogRepository.SaveWorkoutSessionLogAsync(workoutSessionEntity);
             await _outputCacheStore.EvictByTagAsync("workout-sessions-cache", cancellationToken);
 
-            return new ApiResult
+            return new ResultResponse
             {
                 Success = true
             };
