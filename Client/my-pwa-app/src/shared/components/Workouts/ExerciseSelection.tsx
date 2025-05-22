@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
-import {
-	filterExercisesByName,
-	populateExercises,
-	saveActiveWorkoutSession,
-} from "../../../utils/offlineExercise";
+import { filterExercisesByName } from "../../../utils/offlineExercise";
+import { ExerciseData } from "../../../types/ExerciseDataType";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkoutSessionLog } from "../../../types/WorkoutSessionLogType";
 import useNotification from "../../../hooks/useNotification";
-import useUserExercises from "../../../hooks/useUserExercises";
-import { ExerciseData } from "../../../types/ExerciseDataType";
+import useUserExercises from "../../../hooks/useUserWorkoutSession";
+import { saveActiveWorkoutSession } from "../../../utils/workoutSessionUtils";
 
 const exerciseSelectionSchema = z
 	.object({
@@ -37,13 +34,7 @@ const exerciseSelectionSchema = z
 
 type ExerciseSelectionType = z.infer<typeof exerciseSelectionSchema>;
 
-export default function ExerciseSelection({
-	setUserExercises,
-	userExercises,
-}: {
-	setUserExercises: React.Dispatch<React.SetStateAction<WorkoutSessionLog[]>>;
-	userExercises: WorkoutSessionLog[];
-}) {
+export default function ExerciseSelection() {
 	const {
 		register,
 		handleSubmit,
@@ -53,114 +44,119 @@ export default function ExerciseSelection({
 		resolver: zodResolver(exerciseSelectionSchema),
 	});
 
+	const { setUserExercises, userExercises } = useUserExercises();
 	const { addNotification } = useNotification();
 
-	const { setWorkoutSessionLog, workoutSessionLog } = useUserExercises();
+	const [currentSelectedExercises, setCurrentSelectedExercises] = useState<
+		WorkoutSessionLog[]
+	>([]);
+
+	const [selectedExercise, setSelectedExercise] = useState<{
+		exerciseName: string;
+		exerciseId: string;
+	}>({ exerciseName: "", exerciseId: "" });
 
 	const [filteredExercises, setFilteredExercises] = useState<ExerciseData[]>(
 		[]
 	);
 
-	const [search, setSearch] = useState("");
+	const [searchQuery, setSearchQuery] = useState<string>("");
 
-	const [userSelectedExercises, setUserSelectedExercises] = useState<
-		WorkoutSessionLog[]
-	>([]);
-	const [selectedExercise, setSelectedExercise] = useState<{
-		exerciseId: string;
-		exerciseName: string;
-	}>({ exerciseId: "", exerciseName: "" });
-
-	function onSubmit(data: ExerciseSelectionType) {
-		if (
-			selectedExercise.exerciseId === "" &&
-			selectedExercise.exerciseName === ""
-		) {
-			addNotification({
+	const onSubmit = (data: ExerciseSelectionType) => {
+		if (!selectedExercise.exerciseId || !selectedExercise.exerciseName)
+			return addNotification({
 				type: "error",
 				message: "Please select at least one exercise",
 			});
-			return;
-		}
 
 		const exerciseSets = [];
 
-		for (let i = 1; i <= data.sets; i++) {
-			exerciseSets.push({ set: i, finished: false });
+		for (let i = 0; i < data.sets; i++) {
+			exerciseSets.push({
+				set: i + 1,
+				finished: false,
+			});
 		}
 
-		setUserSelectedExercises([
-			...userSelectedExercises,
+		setCurrentSelectedExercises([
+			...currentSelectedExercises,
 			{
 				exerciseId: selectedExercise.exerciseId,
 				exerciseName: selectedExercise.exerciseName,
-				sets: exerciseSets,
 				repRangeStart: data.repStart,
 				repRangeEnd: data.repEnd,
+				sets: exerciseSets,
 				restTimer: null,
 			},
 		]);
+
 		reset();
 		setSelectedExercise({ exerciseId: "", exerciseName: "" });
-	}
+	};
 
-	function handleSelectExerciseClick(exercise: ExerciseData) {
+	const handleSelectExerciseClick = (exercise: ExerciseData) => {
 		setSelectedExercise({
-			exerciseId: exercise.exerciseId,
+			exerciseId: exercise.id,
 			exerciseName: exercise.name,
 		});
 		setFilteredExercises([]);
-	}
+	};
 
-	function handleRemoveSelectedExercise(exercise: {
-		exerciseId: string;
-		exerciseName: string;
-	}) {
-		const updatedUserSelectedExercises = userSelectedExercises.filter(
-			(userSelectedExercise) =>
-				userSelectedExercise.exerciseId !== exercise.exerciseId
+	const handleRemoveSelectedExerciseClick = (exerciseId: string) => {
+		const filteredSelectedExercises = currentSelectedExercises.filter(
+			(exercise) => exercise.exerciseId !== exerciseId
 		);
 
-		setUserSelectedExercises(updatedUserSelectedExercises);
-	}
+		setCurrentSelectedExercises(filteredSelectedExercises);
+	};
+
+	const handleDisplaySelectedExercises = () => {
+		if (currentSelectedExercises.length === 0) return;
+
+		const updatedUserExercises = [
+			...userExercises,
+			...currentSelectedExercises,
+		];
+
+		setUserExercises(updatedUserExercises);
+		saveActiveWorkoutSession({ exercises: updatedUserExercises });
+		setCurrentSelectedExercises([]);
+
+		addNotification({
+			type: "success",
+			message:
+				"Selected exercises has been successfully added to your workout session",
+		});
+	};
 
 	useEffect(() => {
-		populateExercises();
-	}, []);
+		if (searchQuery === "") return setFilteredExercises([]);
 
-	useEffect(() => {
-		async function onSearchByExerciseName() {
-			setFilteredExercises(await filterExercisesByName(search));
+		async function onSearchExercise() {
+			setFilteredExercises(await filterExercisesByName(searchQuery));
 		}
 
-		if (search.trim() === "") {
-			setFilteredExercises([]);
-			return;
-		}
-
-		const timeout: ReturnType<typeof setTimeout> = setTimeout(() => {
-			onSearchByExerciseName();
+		const timeout = setTimeout(() => {
+			onSearchExercise();
 		}, 500);
 
 		return () => clearTimeout(timeout);
-	}, [search]);
+	}, [searchQuery]);
 
 	return (
 		<div>
 			<input
 				type="checkbox"
-				id="exercise-selection"
+				id="exercise-selection-modal"
 				className="modal-toggle"
 			/>
 			<div className="modal z-40" role="dialog">
-				<div className="modal-box max-h-[500px] overflow-auto">
-					<h2 className="text-xl mb-3 text-nowrap">
-						Exercise selection
-					</h2>
+				<div className="modal-box w-full h-[450px] overflow-auto">
+					<div className="space-y-3">
+						<h6 className="text-xl">Exercise Selection</h6>
 
-					<div>
 						<div>
-							<div>
+							<div className="w-full">
 								<label className="input w-full">
 									<svg
 										className="h-[1em] opacity-50"
@@ -183,222 +179,163 @@ export default function ExerciseSelection({
 										</g>
 									</svg>
 									<input
-										className="w-full"
 										type="search"
-										required
-										placeholder="Search"
+										value={selectedExercise.exerciseName}
 										onChange={(e) => {
-											setSearch(e.target.value);
+											setSearchQuery(e.target.value);
 											setSelectedExercise({
 												...selectedExercise,
 												exerciseName: e.target.value,
 											});
 										}}
-										value={selectedExercise.exerciseName}
+										placeholder="Search"
 									/>
 								</label>
-							</div>
 
-							<div className="space-y-4">
 								{filteredExercises.length > 0 && (
-									<div className="w-full h-30 bg-base-300 overflow-auto">
-										<div className="flex flex-col px-4 py-2 space-y-1">
-											{filteredExercises.map(
-												(exercise) => {
-													return (
-														<span
-															onClick={() => {
-																handleSelectExerciseClick(
-																	exercise
-																);
-															}}
-															key={
-																exercise.exerciseId
-															}
-														>
-															{exercise.name}
-														</span>
-													);
-												}
-											)}
-										</div>
-									</div>
-								)}
-
-								{userSelectedExercises.length > 0 && (
-									<div className="space-y-2 sm:col-span-2">
-										<h6>Selected exercises:</h6>
-
-										<div className="grid grid-cols-4 gap-2">
-											{userSelectedExercises.map(
-												(exercise) => {
-													return (
-														<div
-															key={
-																exercise.exerciseId
-															}
-															className="relative bg-primary p-2 rounded-2xl"
-														>
-															<button
-																onClick={() => {
-																	handleRemoveSelectedExercise(
-																		exercise
-																	);
-																}}
-																type="button"
-																className="absolute -top-2 -left-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-															>
-																×
-															</button>
-															<div className="overflow-auto">
-																<span className="text-sm text-neutral text-nowrap">
-																	{
-																		exercise.exerciseName
-																	}
-																</span>
-															</div>
-														</div>
-													);
-												}
-											)}
-										</div>
-									</div>
-								)}
-							</div>
-						</div>
-
-						<form
-							onSubmit={handleSubmit(onSubmit)}
-							className="grid gap-2 sm:grid-cols-2"
-						>
-							<div className="sm:col-span-2">
-								<fieldset className="fieldset">
-									<legend className="fieldset-legend">
-										Sets
-									</legend>
-									<input
-										type="number"
-										className="input w-full"
-										{...register("sets", {
-											setValueAs: (value) =>
-												value === ""
-													? undefined
-													: parseInt(value, 10),
-										})}
-									/>
-								</fieldset>
-								{errors.sets && (
-									<p className="text-error text-sm">
-										{errors.sets.message}
-									</p>
-								)}
-							</div>
-
-							<div>
-								<fieldset className="fieldset">
-									<legend className="fieldset-legend">
-										Rep range (Start)
-									</legend>
-									<input
-										type="number"
-										className="input w-full"
-										{...register("repStart", {
-											setValueAs: (value) =>
-												value === ""
-													? undefined
-													: parseInt(value, 10),
-										})}
-									/>
-								</fieldset>
-								{errors.repStart && (
-									<p className="text-error text-sm">
-										{errors.repStart.message}
-									</p>
-								)}
-							</div>
-
-							<div>
-								<fieldset className="fieldset">
-									<legend className="fieldset-legend">
-										Rep range (End)
-									</legend>
-									<input
-										type="number"
-										className="input w-full"
-										{...register("repEnd", {
-											setValueAs: (value) =>
-												value === ""
-													? undefined
-													: parseInt(value, 10),
-										})}
-									/>
-								</fieldset>
-								{errors.repEnd && (
-									<p className="text-error text-sm">
-										{errors.repEnd.message}
-									</p>
-								)}
-							</div>
-
-							<div className="modal-action flex-wrap">
-								<label
-									onClick={() => {
-										if (userSelectedExercises.length > 0) {
-											const updatedUserExercises = [
-												...userExercises,
-												...userSelectedExercises,
-											];
-
-											setUserExercises(
-												updatedUserExercises
+									<div className="flex flex-col bg-base-300 p-3 space-y-1 w-full h-36 overflow-auto">
+										{filteredExercises.map((exercise) => {
+											return (
+												<span
+													onClick={() => {
+														handleSelectExerciseClick(
+															exercise
+														);
+													}}
+													className="text-nowrap"
+													key={exercise.id}
+												>
+													{exercise.name}
+												</span>
 											);
-											saveActiveWorkoutSession({
-												exercises: updatedUserExercises,
-											});
-
-											const exercises: WorkoutSessionLog[] =
-												userSelectedExercises.map(
-													(exercise) => {
-														return {
-															exerciseId:
-																exercise.exerciseId,
-															exerciseName:
-																exercise.exerciseName,
-															repRangeStart:
-																exercise.repRangeStart,
-															repRangeEnd:
-																exercise.repRangeEnd,
-															sets: [],
-															restTimer: null,
-														};
-													}
-												);
-
-											setWorkoutSessionLog([
-												...workoutSessionLog,
-												...exercises,
-											]);
-										}
-
-										reset();
-										setUserSelectedExercises([]);
-										setSelectedExercise({
-											exerciseId: "",
-											exerciseName: "",
-										});
-										setFilteredExercises([]);
-									}}
-									htmlFor="exercise-selection"
-									className="btn"
-								>
-									Close
-								</label>
-
-								<button type="submit" className="btn">
-									Add Exercise
-								</button>
+										})}
+									</div>
+								)}
 							</div>
-						</form>
+
+							{currentSelectedExercises.length > 0 && (
+								<div className="grid grid-cols-4 gap-2 mt-3">
+									{currentSelectedExercises.map(
+										(exercise) => {
+											return (
+												<div key={exercise.exerciseId}>
+													<div className="relative bg-primary p-2 rounded-2xl">
+														<button
+															onClick={() =>
+																handleRemoveSelectedExerciseClick(
+																	exercise.exerciseId
+																)
+															}
+															type="button"
+															className="absolute -top-2 -left-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
+														>
+															×
+														</button>
+														<div className="overflow-auto">
+															<span className="text-sm text-neutral text-nowrap">
+																{
+																	exercise.exerciseName
+																}
+															</span>
+														</div>
+													</div>
+												</div>
+											);
+										}
+									)}
+								</div>
+							)}
+
+							<form
+								onSubmit={handleSubmit(onSubmit)}
+								className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+							>
+								<div className="sm:col-span-2">
+									<fieldset className="fieldset">
+										<legend className="fieldset-legend">
+											Sets
+										</legend>
+										<input
+											type="number"
+											className="input w-full"
+											{...register("sets", {
+												setValueAs: (value) =>
+													value === ""
+														? undefined
+														: parseInt(value, 10),
+											})}
+										/>
+									</fieldset>
+
+									{errors.sets && (
+										<span className="text-error text-xs">
+											{errors.sets.message}
+										</span>
+									)}
+								</div>
+
+								<div>
+									<fieldset className="fieldset">
+										<legend className="fieldset-legend">
+											Rep Range (Start)
+										</legend>
+										<input
+											type="number"
+											className="input w-full"
+											{...register("repStart", {
+												setValueAs: (value) =>
+													value === ""
+														? undefined
+														: parseInt(value, 10),
+											})}
+										/>
+									</fieldset>
+
+									{errors.repStart && (
+										<span className="text-error text-xs">
+											{errors.repStart.message}
+										</span>
+									)}
+								</div>
+
+								<div>
+									<fieldset className="fieldset">
+										<legend className="fieldset-legend">
+											Rep Range (End)
+										</legend>
+										<input
+											type="number"
+											className="input w-full"
+											{...register("repEnd", {
+												setValueAs: (value) =>
+													value === ""
+														? undefined
+														: parseInt(value, 10),
+											})}
+										/>
+									</fieldset>
+
+									{errors.repEnd && (
+										<span className="text-error text-xs">
+											{errors.repEnd.message}
+										</span>
+									)}
+								</div>
+
+								<div className="modal-action">
+									<label
+										onClick={handleDisplaySelectedExercises}
+										htmlFor="exercise-selection-modal"
+										className="btn"
+									>
+										Close
+									</label>
+									<button type="submit" className="btn">
+										Select Exercise
+									</button>
+								</div>
+							</form>
+						</div>
 					</div>
 				</div>
 			</div>

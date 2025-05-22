@@ -1,143 +1,187 @@
-import React, { useEffect, useRef, useState } from "react";
-import { SaveWorkoutSessionLog } from "../../../services/LogWorkoutSessionService";
-import { queueWorkoutSession } from "../../../utils/offlineSync";
+import { Plus } from "lucide-react";
 import ExerciseSelection from "./ExerciseSelection";
 import UserExercises from "./UserExercises";
-import RestTimer from "./RestTimer";
+import useUserExercises from "../../../hooks/useUserWorkoutSession";
+import { useEffect, useRef, useState } from "react";
 import { formatToMMSS } from "../../../utils/utils";
-import useUserExercises from "../../../hooks/useUserExercises";
+import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
+import {
+	clearLastActiveWorkoutSession,
+	saveActiveWorkoutSession,
+} from "../../../utils/workoutSessionUtils";
 import useNotification from "../../../hooks/useNotification";
-import { SyncAction } from "../../../types/SyncActionType";
+import { SaveWorkoutSessionLog } from "../../../services/LogWorkoutSessionService";
+import { queueWorkoutSession } from "../../../utils/offlineSync";
 
 export default function NewWorkout({
-	startWorkoutSession,
-	setStartWorkoutSession,
-	queuedWorkoutSessions,
-	setQueuedWorkoutSessions,
+	isNewWorkoutStarted,
+	lastActiveWorkoutSessionLogRef,
+	setIsNewWorkoutStarted,
 }: {
-	startWorkoutSession: boolean;
-	setStartWorkoutSession: React.Dispatch<React.SetStateAction<boolean>>;
-	queuedWorkoutSessions: SyncAction[];
-	setQueuedWorkoutSessions: React.Dispatch<
-		React.SetStateAction<SyncAction[]>
-	>;
+	isNewWorkoutStarted: boolean;
+	lastActiveWorkoutSessionLogRef: ActiveWorkoutSession | null;
+	setIsNewWorkoutStarted: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-	const {
-		userExercises,
-		setUserExercises,
-		workoutSessionLog,
-		setWorkoutSessionLog,
-	} = useUserExercises();
-
 	const { addNotification } = useNotification();
+	const { userExercises, setUserExercises } = useUserExercises();
 
-	const [totalDuration, setTotalDuration] = useState(0);
-	const duration = useRef<NodeJS.Timeout | null>(null);
+	const latestExercisesRef = useRef(userExercises);
 
-	async function handleFinishWorkoutSessionClick() {
-		if (startWorkoutSession && duration.current !== null) {
-			setUserExercises([]);
-			setStartWorkoutSession(false);
-			clearInterval(duration.current);
-			addNotification({
-				type: "success",
-				message: "Your workout session has been finished",
-			});
+	const [workoutDuration, setWorkoutDuration] = useState(0);
 
-			if (workoutSessionLog.length > 0) {
-				const isSaved = await SaveWorkoutSessionLog(workoutSessionLog);
+	const workoutDurationRef = useRef(0);
 
-				setWorkoutSessionLog([]);
-
-				if (!isSaved) {
-					addNotification({
-						type: "error",
-						message: "Failed to save workout session",
-					});
-					queueWorkoutSession(workoutSessionLog);
-					setQueuedWorkoutSessions([
-						...queuedWorkoutSessions,
-						{
-							action: "saveWorkoutSession",
-							payload: workoutSessionLog,
-						},
-					]);
-					return;
-				}
-
-				addNotification({
-					type: "success",
-					message: "Workout session saved successfully",
-				});
+	const handleAddSetClick = (exerciseId: string) => {
+		const updatedUserExercises = userExercises.map((ex) => {
+			if (ex.exerciseId === exerciseId) {
+				return {
+					...ex,
+					sets: [
+						...ex.sets,
+						{ set: ex.sets.length + 1, finished: false },
+					],
+				};
 			}
+
+			return ex;
+		});
+
+		setUserExercises(updatedUserExercises);
+		saveActiveWorkoutSession({ exercises: updatedUserExercises });
+	};
+
+	const handleRemoveSetClick = (exerciseId: string, setId: number) => {
+		const filteredUserExercises = userExercises.map((ex) => {
+			if (ex.exerciseId === exerciseId) {
+				return {
+					...ex,
+					sets: ex.sets.filter((set) => set.set !== setId),
+				};
+			}
+
+			return ex;
+		});
+
+		const updatedUserExercises = filteredUserExercises.map((ex) => {
+			if (ex.exerciseId === exerciseId) {
+				return {
+					...ex,
+					sets: ex.sets.map((set, index) => {
+						return {
+							...set,
+							set: index + 1,
+						};
+					}),
+				};
+			}
+
+			return ex;
+		});
+
+		setUserExercises(updatedUserExercises);
+	};
+
+	const handleFinishWorkoutClick = async () => {
+		if (userExercises.length > 0) {
+			const response = await SaveWorkoutSessionLog(userExercises);
+
+			if (!response) queueWorkoutSession(userExercises);
 		}
 
-		// clearUserActiveWorkoutSession();
-	}
+		setUserExercises([]);
+		clearLastActiveWorkoutSession();
+		setIsNewWorkoutStarted(false);
+		setWorkoutDuration(0);
+		workoutDurationRef.current = 0;
+		latestExercisesRef.current = [];
+
+		addNotification({
+			type: "success",
+			message: "Workout session has been finished",
+		});
+	};
 
 	useEffect(() => {
-		if (duration.current !== null) return;
+		if (lastActiveWorkoutSessionLogRef?.duration) {
+			setWorkoutDuration(lastActiveWorkoutSessionLogRef.duration);
+			workoutDurationRef.current =
+				lastActiveWorkoutSessionLogRef.duration;
+		}
+	}, [lastActiveWorkoutSessionLogRef]);
 
-		if (startWorkoutSession) {
-			duration.current = setInterval(() => {
-				setTotalDuration((prev) => prev + 1);
+	useEffect(() => {
+		latestExercisesRef.current = userExercises;
+	}, [userExercises]);
+
+	useEffect(() => {
+		let interval: ReturnType<typeof setInterval> | null = null;
+
+		if (isNewWorkoutStarted && interval === null) {
+			interval = setInterval(() => {
+				setWorkoutDuration((prev) => {
+					const next = prev + 1;
+					workoutDurationRef.current = next;
+					return next;
+				});
 			}, 1000);
 		}
 
-		return () => clearInterval(duration.current!);
-	}, [startWorkoutSession]);
+		return () => {
+			if (interval !== null) clearInterval(interval);
+
+			if (latestExercisesRef.current.length > 0) {
+				saveActiveWorkoutSession({
+					duration: workoutDurationRef.current,
+					exercises: latestExercisesRef.current,
+				});
+			}
+		};
+	}, [isNewWorkoutStarted]);
 
 	return (
-		<div className="h-full w-full">
+		<div className="space-y-2">
 			<h1 className="text-2xl">New Workout</h1>
 
-			<div className="space-x-2">
-				<label htmlFor="exercise-selection" className="btn">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth={1.5}
-						stroke="currentColor"
-						className="size-6"
+			<div className="flex space-x-3">
+				<div>
+					<label htmlFor="exercise-selection-modal" className="btn">
+						<Plus />
+						<span>Add Exercise</span>
+					</label>
+				</div>
+
+				<div>
+					<button
+						onClick={handleFinishWorkoutClick}
+						className="btn btn-primary"
 					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M12 4.5v15m7.5-7.5h-15"
-						/>
-					</svg>
-					Add Exercise
-				</label>
-
-				<button
-					onClick={handleFinishWorkoutSessionClick}
-					className="btn btn-primary"
-				>
-					Finish
-				</button>
+						Finish Workout
+					</button>
+				</div>
 			</div>
 
-			<ExerciseSelection
-				userExercises={userExercises}
-				setUserExercises={setUserExercises}
-			/>
+			<ExerciseSelection />
 
-			{userExercises.length > 0 &&
-				userExercises.map((exercise) => {
-					return (
-						<UserExercises
-							key={exercise.exerciseId}
-							exercise={exercise}
-						/>
-					);
-				})}
+			{userExercises.length > 0 && (
+				<div className="space-y-3">
+					{userExercises.map((exercise) => {
+						return (
+							<UserExercises
+								key={exercise.exerciseId}
+								exercise={exercise}
+								handleAddSetClick={handleAddSetClick}
+								handleRemoveSetClick={handleRemoveSetClick}
+							/>
+						);
+					})}
+				</div>
+			)}
 
-			<RestTimer />
-
-			<div className="fixed top-10 left-1/2 -translate-x-1/2">
-				<span>{`Duration: ${formatToMMSS(totalDuration)}`}</span>
-			</div>
+			{isNewWorkoutStarted && (
+				<div className="fixed top-12 left-1/2 -translate-x-1/2">
+					<span>{`Duration: ${formatToMMSS(workoutDuration)}`}</span>
+				</div>
+			)}
 		</div>
 	);
 }

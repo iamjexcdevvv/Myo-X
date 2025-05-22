@@ -1,153 +1,127 @@
-// import { clearUserActiveWorkoutSession } from "../utils/offlineExercise";
-
-import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import NewWorkout from "../shared/components/Workouts/NewWorkout";
+import { populateExercises } from "../utils/offlineExercise";
 import {
-	getQueueWorkoutSessions,
-	removeQueuedWorkoutSession,
-} from "../utils/offlineSync";
-import { SaveWorkoutSessionLog } from "../services/LogWorkoutSessionService";
-import { getActiveWorkoutSession } from "../utils/offlineExercise";
-import useUserExercises from "../hooks/useUserExercises";
-import { SyncAction } from "../types/SyncActionType";
-
-// TODO: Save active workout session
-// TODO: Add rest timer option
-// TODO: Add remove exercise option
-// TODO: Add add set button
+	clearLastActiveWorkoutSession,
+	getLastActiveWorkoutSessionLog,
+} from "../utils/workoutSessionUtils";
+import useNotification from "../hooks/useNotification";
+import useUserWorkoutSession from "../hooks/useUserWorkoutSession";
+import { ActiveWorkoutSession } from "../types/ActiveWorkoutSessionType";
 
 export default function Workouts() {
-	const [startWorkoutSession, setStartWorkoutSession] = useState(false);
-	const { setUserExercises } = useUserExercises();
+	const { addNotification } = useNotification();
+	const { setUserExercises } = useUserWorkoutSession();
 
-	const [queuedWorkoutSessions, setQueuedWorkoutSessions] = useState<
-		SyncAction[]
-	>([]);
+	const [isNewWorkoutStarted, setIsNewWorkoutStarted] = useState(false);
 
-	async function handleContinueActiveWorkoutSessionClick() {
-		const activeWorkoutSession = await getActiveWorkoutSession();
+	const lastActiveWorkoutSessionModalRef = useRef<HTMLDialogElement>(null);
+	const lastActiveWorkoutSessionLogRef = useRef<ActiveWorkoutSession | null>(
+		null
+	);
 
-		if (activeWorkoutSession) {
-			setStartWorkoutSession(true);
-			setUserExercises(activeWorkoutSession.exercises);
+	const onResumeLastActiveWorkoutSession = async () => {
+		const lastActiveWorkoutSessionLog =
+			await getLastActiveWorkoutSessionLog();
 
-			const modal = document.getElementById(
-				"active-workout-session"
-			) as HTMLDialogElement;
-
-			modal.close();
+		if (lastActiveWorkoutSessionLog) {
+			lastActiveWorkoutSessionLogRef.current =
+				lastActiveWorkoutSessionLog;
+			setIsNewWorkoutStarted(true);
+			setUserExercises(lastActiveWorkoutSessionLogRef.current.exercises);
 		}
-	}
+
+		lastActiveWorkoutSessionModalRef.current?.close();
+	};
+
+	const onDiscardLastActiveWorkoutSession = () => {
+		lastActiveWorkoutSessionLogRef.current = null;
+		clearLastActiveWorkoutSession();
+
+		addNotification({
+			type: "success",
+			message: "Your last active workout session has been discarded",
+		});
+	};
 
 	useEffect(() => {
-		async function processSyncQueuedWorkoutSessions() {
-			const items = await getQueueWorkoutSessions();
-
-			if (items.length > 0) {
-				for (const item of items) {
-					if (!item.payload || !item.id) continue;
-
-					const isSaved = await SaveWorkoutSessionLog(item.payload);
-
-					if (!isSaved) {
-						setQueuedWorkoutSessions(items);
-						return;
-					}
-
-					removeQueuedWorkoutSession(item.id);
-				}
+		async function checkForLastActiveWorkoutSession() {
+			if (await getLastActiveWorkoutSessionLog()) {
+				lastActiveWorkoutSessionModalRef.current?.showModal();
 			}
 		}
 
-		async function checkForAnyActiveWorkoutSession() {
-			const activeWorkoutSession = await getActiveWorkoutSession();
-
-			if (activeWorkoutSession) {
-				const modal = document.getElementById(
-					"active-workout-session"
-				) as HTMLDialogElement;
-
-				modal.showModal();
-			}
-		}
-
-		processSyncQueuedWorkoutSessions();
-		checkForAnyActiveWorkoutSession();
+		checkForLastActiveWorkoutSession();
+		populateExercises();
 	}, []);
 
 	return (
-		<section className="w-full h-full p-4 space-y-2 text-nowrap">
-			{!startWorkoutSession && (
-				<button
-					onClick={() => setStartWorkoutSession(true)}
-					className="btn"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth={1.5}
-						stroke="currentColor"
-						className="size-6"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M12 4.5v15m7.5-7.5h-15"
-						/>
-					</svg>
-					<span>New Workout</span>
-				</button>
-			)}
-
-			{startWorkoutSession && (
-				<NewWorkout
-					setStartWorkoutSession={setStartWorkoutSession}
-					startWorkoutSession={startWorkoutSession}
-					queuedWorkoutSessions={queuedWorkoutSessions}
-					setQueuedWorkoutSessions={setQueuedWorkoutSessions}
-				/>
-			)}
-
-			{queuedWorkoutSessions.length > 0 && (
-				<div className="fixed bottom-10 left-1/2 -translate-x-1/2">
-					<span className="text-xs text-error">
-						{`There is ${queuedWorkoutSessions.length} workout session(s) failed to save. It will be
-									save when you get back online`}
-					</span>
-				</div>
-			)}
-
-			<dialog id="active-workout-session" className="modal">
-				<div className="modal-box">
+		<section className="w-full h-full p-4">
+			<div>
+				{isNewWorkoutStarted ? (
+					<NewWorkout
+						setIsNewWorkoutStarted={setIsNewWorkoutStarted}
+						lastActiveWorkoutSessionLogRef={
+							lastActiveWorkoutSessionLogRef.current
+						}
+						isNewWorkoutStarted={isNewWorkoutStarted}
+					/>
+				) : (
 					<div>
-						<h6 className="font-bold text-lg text-warning text-wrap">
-							Active Workout Session
-						</h6>
-						<p className="text-wrap">
-							You have an active workout session. Do you want to
-							continue?
-						</p>
+						<button
+							onClick={() => setIsNewWorkoutStarted(true)}
+							className="btn"
+						>
+							<Plus />
+							<span>New Workout</span>
+						</button>
 					</div>
-					<div className="modal-action flex-wrap">
-						<form method="dialog">
-							{/* if there is a button in form, it will close the modal */}
-							<button className="btn btn-error">Discard</button>
-						</form>
+				)}
+			</div>
 
+			<div>
+				<dialog
+					ref={lastActiveWorkoutSessionModalRef}
+					id="active-workout-session-modal"
+					className="modal"
+				>
+					<div className="modal-box">
 						<div>
-							<button
-								onClick={
-									handleContinueActiveWorkoutSessionClick
-								}
-								className="btn btn-primary"
-							>
-								Continue
-							</button>
+							<h3 className="text-lg font-bold">
+								Active Workout
+							</h3>
+							<p className="py-4 text-warning">
+								Do you want to resume your last active workout
+								session?
+							</p>
+						</div>
+						<div className="modal-action flex-wrap">
+							<form method="dialog">
+								{/* if there is a button in form, it will close the modal */}
+								<button
+									onClick={() =>
+										onDiscardLastActiveWorkoutSession()
+									}
+									className="btn btn-error"
+								>
+									Discard
+								</button>
+							</form>
+							<div>
+								<button
+									onClick={() =>
+										onResumeLastActiveWorkoutSession()
+									}
+									className="btn btn-primary"
+								>
+									Resume
+								</button>
+							</div>
 						</div>
 					</div>
-				</div>
-			</dialog>
+				</dialog>
+			</div>
 		</section>
 	);
 }

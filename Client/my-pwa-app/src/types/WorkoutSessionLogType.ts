@@ -17,7 +17,7 @@ export type WorkoutSessionLog = {
 		reps?: number;
 		load?: number;
 		rir?: number;
-		finished?: boolean;
+		finished: boolean;
 	}[];
-	restTimer: number | null;
-}
+	restTimer?: number | null;
+};

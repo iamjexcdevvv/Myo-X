@@ -1,10 +1,5 @@
 import db from "../database/offlineDB";
-import { ActiveWorkoutSession } from "../types/ActiveWorkoutSessionType";
 import { ExerciseData } from "../types/ExerciseDataType";
-
-const ACTIVE_WORKOUT_ID = "ACTIVE_WORKOUT";
-
-let saveWorkoutTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const populateExercises = async () => {
 	if ((await db.exercises.count()) === 0) {
@@ -13,7 +8,7 @@ export const populateExercises = async () => {
 
 		const exerciseToAdd = exercises.map((exercise: ExerciseData) => {
 			return {
-				exerciseId: exercise.id,
+				id: exercise.id,
 				name: exercise.name,
 				force: exercise.force,
 				level: exercise.level,
@@ -27,38 +22,27 @@ export const populateExercises = async () => {
 			};
 		});
 
-		db.exercises.bulkAdd(exerciseToAdd);
+		db.exercises.add({
+			id: "EXERCISES",
+			exercises: exerciseToAdd,
+		});
 	}
 };
 
 export const filterExercisesByName = async (exerciseName: string) => {
-	const availableExercises = await db.exercises.toArray();
+	const availableExercises = await db.exercises
+		.where("id")
+		.equals("EXERCISES")
+		.first();
 
-	const filteredExercises = availableExercises.filter((exercise) =>
-		exercise.name.toLowerCase().includes(exerciseName.toLowerCase())
-	);
+	if (availableExercises && availableExercises.exercises.length > 0) {
+		const filteredExercises = availableExercises.exercises.filter(
+			(exercise) =>
+				exercise.name.toLowerCase().includes(exerciseName.toLowerCase())
+		);
 
-	const uniqueExercises = [
-		...new Map(
-			filteredExercises.map((exercise) => [exercise.exerciseId, exercise])
-		).values(),
-	];
+		return filteredExercises;
+	}
 
-	return uniqueExercises;
-};
-
-export const saveActiveWorkoutSession = (
-	activeWorkoutSession: ActiveWorkoutSession
-) => {
-	activeWorkoutSession.id = ACTIVE_WORKOUT_ID;
-
-	if (saveWorkoutTimeout) clearTimeout(saveWorkoutTimeout);
-
-	saveWorkoutTimeout = setTimeout(() => {
-		db.userActiveWorkoutSession.put(activeWorkoutSession);
-	}, 500);
-};
-
-export const getActiveWorkoutSession = async () => {
-	return await db.userActiveWorkoutSession.get(ACTIVE_WORKOUT_ID);
+	return [];
 };

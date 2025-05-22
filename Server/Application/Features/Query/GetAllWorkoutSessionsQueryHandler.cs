@@ -5,7 +5,7 @@ using Mediator;
 
 namespace Application.Features.Query
 {
-    public class GetAllWorkoutSessionsQueryHandler : IQueryHandler<GetAllWorkoutSessionsQuery, List<WorkoutSessionEntityDTO>?>
+    public class GetAllWorkoutSessionsQueryHandler : IQueryHandler<GetAllWorkoutSessionsQuery, List<WorkoutSessionEntityDTO>>
     {
         private readonly IWorkoutSessionLogRepository _workoutSessionLogRepository;
         private readonly IUserRepository _userRepository;
@@ -16,13 +16,13 @@ namespace Application.Features.Query
             _userRepository = userRepository;
             _mapper = mapper;
         }
-        public async ValueTask<List<WorkoutSessionEntityDTO>?> Handle(GetAllWorkoutSessionsQuery query, CancellationToken cancellationToken)
+        public async ValueTask<List<WorkoutSessionEntityDTO>> Handle(GetAllWorkoutSessionsQuery query, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetUserByRefreshTokenAsync(query.HttpContext.Request.Cookies["Myo-X-Refresh-Token"]!);
 
-            if (user == null)
+            if (user is null)
             {
-                return null;
+                return [];
             }
 
             var userWorkoutSessions = await _workoutSessionLogRepository.GetAllWorkoutSessionsByUserAsync(user);

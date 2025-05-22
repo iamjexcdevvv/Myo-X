@@ -4,5 +4,5 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Features.Query
 {
-    public record GetAllWorkoutSessionsQuery(HttpContext HttpContext) : IQuery<List<WorkoutSessionEntityDTO>?>;
+    public record GetAllWorkoutSessionsQuery(HttpContext HttpContext) : IQuery<List<WorkoutSessionEntityDTO>>;
 }

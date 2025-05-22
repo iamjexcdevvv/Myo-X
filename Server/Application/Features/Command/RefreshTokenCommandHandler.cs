@@ -17,7 +17,7 @@ namespace Application.Features.Command
         {
             var refreshToken = command.HttpContext.Request.Cookies["Myo-X-Refresh-Token"];
             
-            if (refreshToken == null)
+            if (refreshToken is null)
             {
                 return new TokenResultResponse
                 {
@@ -27,7 +27,7 @@ namespace Application.Features.Command
 
             var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
 
-            if (user == null || user.RefreshTokenExpiry <= DateTime.UtcNow)
+            if (user is null || user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
                 return new TokenResultResponse
                 {

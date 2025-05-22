@@ -1,6 +1,5 @@
 export type ExerciseData = {
-	id?: number;
-	exerciseId: string;
+	id: string;
 	name: string;
 	force: string | null;
 	level: string;

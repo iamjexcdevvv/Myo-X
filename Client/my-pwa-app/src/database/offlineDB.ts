@@ -3,24 +3,29 @@ import { ExerciseData } from "../types/ExerciseDataType";
 import { SyncAction } from "../types/SyncActionType";
 import { ActiveWorkoutSession } from "../types/ActiveWorkoutSessionType";
 
-interface UserAuth {
+type UserAuth = {
 	id: string;
 	cipherText: string;
 	iv: number[];
-}
+};
+
+type Exercises = {
+	id: string;
+	exercises: ExerciseData[];
+};
 
 const db = new Dexie("myo-x-db") as Dexie & {
 	userAuth: Dexie.Table<UserAuth, number>;
-	exercises: Dexie.Table<ExerciseData, number>;
+	exercises: Dexie.Table<Exercises, number>;
 	syncQueue: Dexie.Table<SyncAction, number>;
 	userActiveWorkoutSession: Dexie.Table<ActiveWorkoutSession, string>;
 };
 db.version(9).stores({
 	userAuth: "id",
 	syncQueue: "++id, action, payload",
-	userActiveWorkoutSession: "id, exercises",
+	userActiveWorkoutSession: "id, duration, exercises",
 	exercises:
-		"++id, exerciseId, name, force, level, mechanic, equipment, primaryMuscles, secondaryMuscles, instructions, category, images",
+		"id, exerciseId, name, force, level, mechanic, equipment, primaryMuscles, secondaryMuscles, instructions, category, images",
 });
 
 export default db;

@@ -1,11 +1,12 @@
 ﻿namespace Application.DTO
 {
-    public class WorkoutSessionEntityDTO
+    public record WorkoutSessionEntityDTO
     {
         public int Id { get; set; }
         public DateTimeOffset WorkoutSessionDate { get; set; }
 
         public List<WorkoutSessionExerciseEntityDTO
-            >? Exercises { get; set; }
+            > Exercises
+        { get; set; } = new List<WorkoutSessionExerciseEntityDTO>();
     }
 }

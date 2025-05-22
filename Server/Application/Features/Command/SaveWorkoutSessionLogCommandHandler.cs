@@ -24,7 +24,7 @@ namespace Application.Features.Command
         {
             var user = await _userRepository.GetUserByRefreshTokenAsync(command.HttpContext.Request.Cookies["Myo-X-Refresh-Token"]!);
 
-            if (user == null)
+            if (user is null)
             {
                 return new ResultResponse
                 {

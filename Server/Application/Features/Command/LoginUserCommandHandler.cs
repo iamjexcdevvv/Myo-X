@@ -42,7 +42,7 @@ namespace Application.Features.Command
 
             var user = await _userRepository.GetUserByEmailAsync(command.request.Email);
 
-            if (user == null)
+            if (user is null)
             {
                 return new TokenResultResponse
                 {

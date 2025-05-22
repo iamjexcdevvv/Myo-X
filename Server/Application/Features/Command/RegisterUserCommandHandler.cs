@@ -40,7 +40,7 @@ namespace Application.Features.Command
 
             var isUserFound = await _userRepo.GetUserByEmailAsync(command.request.Email);
 
-            if (isUserFound != null)
+            if (isUserFound is not null)
             {
                 return new ResultResponse
                 {

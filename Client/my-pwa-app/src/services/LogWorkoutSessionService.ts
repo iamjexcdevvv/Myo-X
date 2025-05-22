@@ -1,8 +1,8 @@
 import { WorkoutSessionLog } from "../types/WorkoutSessionLogType";
 
-export async function SaveWorkoutSessionLog(
+export const SaveWorkoutSessionLog = async (
 	workoutSessionLog: WorkoutSessionLog[]
-) {
+) => {
 	try {
 		const workoutSession = {
 			exercises: [...workoutSessionLog],
@@ -25,9 +25,9 @@ export async function SaveWorkoutSessionLog(
 		console.log(error);
 		return false;
 	}
-}
+};
 
-export async function getAllUserWorkoutSessions() {
+export const getAllUserWorkoutSessions = async () => {
 	try {
 		const request = await fetch(
 			`${import.meta.env.VITE_API_BASE_URL}/WorkoutSessionLog`,
@@ -41,4 +41,4 @@ export async function getAllUserWorkoutSessions() {
 	} catch (error) {
 		console.log(error);
 	}
-}
+};

@@ -10,7 +10,7 @@ import AuthProvider from "./shared/providers/AuthProvider";
 import ProtectedRoute from "./shared/ProtectedRoute";
 import NotificationProvider from "./shared/providers/NotificationProvider";
 import Workouts from "./pages/Workouts";
-import UserExercisesProvider from "./shared/providers/UserExercisesProvider";
+import UserExercisesProvider from "./shared/providers/UserWorkoutSessionProvider";
 
 createRoot(document.getElementById("root")!).render(
 	<BrowserRouter>

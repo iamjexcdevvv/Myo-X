@@ -3,6 +3,7 @@ using Application.Features.Command;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MyoX.Controllers
 {
