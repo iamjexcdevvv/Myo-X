@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { authenticateUser } from "../../services/AuthService";
 import { useLocation } from "react-router";
-import {
-	getQueuedLogoutAction,
-	syncLogoutAction,
-} from "../../utils/offlineSync";
+import { getQueuedLogoutAction, syncLogoutAction } from "../../utils/syncUtils";
 
 export default function AuthProvider({ children }: React.PropsWithChildren) {
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(

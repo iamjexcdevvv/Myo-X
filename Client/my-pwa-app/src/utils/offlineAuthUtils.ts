@@ -2,16 +2,21 @@ import db from "../database/offlineDB";
 import { decryptToken, encryptToken } from "./cryptoUtils";
 
 export const saveUserAccessToken = async (accessToken: string) => {
-	const { cipherText, iv } = await encryptToken(accessToken);
+	const { cipherText, iv, salt } = await encryptToken(accessToken);
 
-	await db.userAuth.put({ id: "access-token", cipherText, iv });
+	await db.userAuth.put({ id: "access-token", cipherText, salt, iv });
 };
 
-export const getUserAccessToken = async () => {
+export const isUserLastAuthenticated = async () => {
 	const record = await db.userAuth.where("id").equals("access-token").first();
-	console.log(record);
-	if (!record) return null;
-	return await decryptToken(record.cipherText, record.iv);
+
+	if (!record) return false;
+
+	const token = await decryptToken(record);
+
+	if (!token) return false;
+
+	return true;
 };
 
 export const clearUserAccessToken = async () => {

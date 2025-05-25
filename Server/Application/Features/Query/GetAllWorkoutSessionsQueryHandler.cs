@@ -2,6 +2,7 @@
 using Domain.Service;
 using MapsterMapper;
 using Mediator;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Features.Query
 {
@@ -10,24 +11,43 @@ namespace Application.Features.Query
         private readonly IWorkoutSessionLogRepository _workoutSessionLogRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        public GetAllWorkoutSessionsQueryHandler(IWorkoutSessionLogRepository workoutSessionLogRepository, IUserRepository userRepository, IMapper mapper)
+        private readonly IMemoryCache _memoryCache;
+        public GetAllWorkoutSessionsQueryHandler(IWorkoutSessionLogRepository workoutSessionLogRepository, IUserRepository userRepository, IMapper mapper, IMemoryCache memoryCache)
         {
             _workoutSessionLogRepository = workoutSessionLogRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _memoryCache = memoryCache;
         }
         public async ValueTask<List<WorkoutSessionEntityDTO>> Handle(GetAllWorkoutSessionsQuery query, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetUserByRefreshTokenAsync(query.HttpContext.Request.Cookies["Myo-X-Refresh-Token"]!);
+            string? refreshToken = query.HttpContext.Request.Cookies["Myo-X-Refresh-Token"];
+
+            if (refreshToken is null)
+            {
+                return [];
+            }
+
+            var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
 
             if (user is null)
             {
                 return [];
             }
 
-            var userWorkoutSessions = await _workoutSessionLogRepository.GetAllWorkoutSessionsByUserAsync(user);
+            if (!_memoryCache.TryGetValue(user.Id, out List<WorkoutSessionEntityDTO>? userWorkoutSessions))
+            {
+                var workoutSessions = await _workoutSessionLogRepository.GetAllWorkoutSessionsByUserAsync(user);
+                userWorkoutSessions = _mapper.Map<List<WorkoutSessionEntityDTO>>(workoutSessions);
 
-            return _mapper.Map<List<WorkoutSessionEntityDTO>>(userWorkoutSessions);
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(30))
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+
+                _memoryCache.Set(user.Id, userWorkoutSessions, cacheEntryOptions);
+            }
+
+            return userWorkoutSessions ?? [];
         }
-    }
+    }   
 }

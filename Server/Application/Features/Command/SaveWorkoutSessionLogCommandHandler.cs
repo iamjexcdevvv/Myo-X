@@ -3,7 +3,7 @@ using Domain.Entities;
 using Domain.Service;
 using MapsterMapper;
 using Mediator;
-using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Features.Command
 {
@@ -12,13 +12,13 @@ namespace Application.Features.Command
         private readonly IWorkoutSessionLogRepository _workoutSessionLogRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        private readonly IOutputCacheStore _outputCacheStore;
-        public SaveWorkoutSessionLogCommandHandler(IWorkoutSessionLogRepository workoutSessionLogRepository, IMapper mapper, IUserRepository userRepository, IOutputCacheStore outputCacheStore)
+        private readonly IMemoryCache _memoryCache;
+        public SaveWorkoutSessionLogCommandHandler(IWorkoutSessionLogRepository workoutSessionLogRepository, IMapper mapper, IUserRepository userRepository, IMemoryCache memoryCache)
         {
             _workoutSessionLogRepository = workoutSessionLogRepository;
             _mapper = mapper;
             _userRepository = userRepository;
-            _outputCacheStore = outputCacheStore;
+            _memoryCache = memoryCache;
         }
         public async ValueTask<ResultResponse> Handle(SaveWorkoutSessionLogCommand command, CancellationToken cancellationToken)
         {
@@ -37,12 +37,14 @@ namespace Application.Features.Command
             WorkoutSessionEntity workoutSessionEntity = new WorkoutSessionEntity
             {
                 UserId = user.Id,
-                WorkoutSessionDate = DateTimeOffset.Now,
+                WorkoutSessionDate = command.request.WorkoutSessionDate ?? DateTimeOffset.Now,
                 Exercises = newWorkoutSessionEntity.Exercises
             };
 
             await _workoutSessionLogRepository.SaveWorkoutSessionLogAsync(workoutSessionEntity);
-            await _outputCacheStore.EvictByTagAsync("workout-sessions-cache", cancellationToken);
+
+            _memoryCache.Remove(user.Id);
+            //await _outputCacheStore.EvictByTagAsync("workout-sessions-cache", cancellationToken);
 
             return new ResultResponse
             {

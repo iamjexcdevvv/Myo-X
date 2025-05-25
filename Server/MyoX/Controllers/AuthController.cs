@@ -12,9 +12,11 @@ namespace MyoX.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public AuthController(IMediator mediator)
+        private readonly IConfiguration _configuration;
+        public AuthController(IMediator mediator, IConfiguration configuration)
         {
             _mediator = mediator;
+            _configuration = configuration;
         }
 
         [AllowAnonymous]
@@ -28,7 +30,7 @@ namespace MyoX.Controllers
                 return BadRequest(new { result.Success, result.Errors });
             }
 
-            Response.Cookies.Append("Myo-X-Access-Token", result.AccessToken!, new CookieOptions()
+            Response.Cookies.Append(_configuration["jwt:access-token"] ?? throw new Exception("No access-token found in jwt key"), result.AccessToken!, new CookieOptions()
             {
                 Secure = true,
                 HttpOnly = true,
@@ -36,7 +38,7 @@ namespace MyoX.Controllers
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });
 
-            Response.Cookies.Append("Myo-X-Refresh-Token", result.RefreshToken!, new CookieOptions()
+            Response.Cookies.Append(_configuration["jwt:refresh-token"] ?? throw new Exception("No refresh-token found in jwt key"), result.RefreshToken!, new CookieOptions()
             {
                 Secure = true,
                 HttpOnly = true,
@@ -72,8 +74,8 @@ namespace MyoX.Controllers
         [HttpPost("logout")]
         public IActionResult LogoutUser()
         {
-            Response.Cookies.Delete("Myo-X-Access-Token");
-            Response.Cookies.Delete("Myo-X-Refresh-Token");
+            Response.Cookies.Delete(_configuration["jwt:access-token"] ?? throw new Exception("No access-token found in jwt key"));
+            Response.Cookies.Delete(_configuration["jwt:refresh-token"] ?? throw new Exception("No access-token found in jwt key"));
             return Ok();
         }
 
@@ -95,7 +97,7 @@ namespace MyoX.Controllers
                 return Unauthorized("Invalid refresh token");
             }
 
-            Response.Cookies.Append("Myo-X-Access-Token", result.AccessToken!, new CookieOptions()
+            Response.Cookies.Append(_configuration["jwt:access-token"] ?? throw new Exception("No access-token found in jwt key"), result.AccessToken!, new CookieOptions()
             {
                 Secure = true,
                 HttpOnly = true,

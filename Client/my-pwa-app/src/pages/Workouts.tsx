@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import NewWorkout from "../shared/components/Workouts/NewWorkout";
-import { populateExercises } from "../utils/offlineExercise";
+import { populateExercises } from "../utils/offlineExercisesUtils";
 import {
 	clearLastActiveWorkoutSession,
 	getLastActiveWorkoutSessionLog,
@@ -9,6 +9,11 @@ import {
 import useNotification from "../hooks/useNotification";
 import useUserWorkoutSession from "../hooks/useUserWorkoutSession";
 import { ActiveWorkoutSession } from "../types/ActiveWorkoutSessionType";
+import {
+	getQueueWorkoutSessions,
+	removeQueuedWorkoutSession,
+} from "../utils/syncUtils";
+import { SaveWorkoutSessionLog } from "../services/LogWorkoutSessionService";
 
 export default function Workouts() {
 	const { addNotification } = useNotification();
@@ -20,6 +25,9 @@ export default function Workouts() {
 	const lastActiveWorkoutSessionLogRef = useRef<ActiveWorkoutSession | null>(
 		null
 	);
+
+	const [queuedWorkoutSessionsCount, setQueuedWorkoutSessionsCount] =
+		useState(0);
 
 	const onResumeLastActiveWorkoutSession = async () => {
 		const lastActiveWorkoutSessionLog =
@@ -52,8 +60,34 @@ export default function Workouts() {
 			}
 		}
 
+		async function syncQueuedWorkoutSessions() {
+			const userQueuedWorkoutSessions = await getQueueWorkoutSessions();
+
+			if (userQueuedWorkoutSessions.length > 0) {
+				for (const workoutSession of userQueuedWorkoutSessions) {
+					if (workoutSession.id && workoutSession.payload) {
+						const success = await SaveWorkoutSessionLog({
+							exercises: workoutSession.payload?.exercises,
+							workoutSessionDate:
+								workoutSession.payload?.workoutSessionDate,
+						});
+
+						if (!success) {
+							setQueuedWorkoutSessionsCount(
+								userQueuedWorkoutSessions.length
+							);
+							break;
+						}
+
+						removeQueuedWorkoutSession(workoutSession.id);
+					}
+				}
+			}
+		}
+
 		checkForLastActiveWorkoutSession();
 		populateExercises();
+		syncQueuedWorkoutSessions();
 	}, []);
 
 	return (
@@ -61,6 +95,9 @@ export default function Workouts() {
 			<div>
 				{isNewWorkoutStarted ? (
 					<NewWorkout
+						setQueuedWorkoutSessionsCount={
+							setQueuedWorkoutSessionsCount
+						}
 						setIsNewWorkoutStarted={setIsNewWorkoutStarted}
 						lastActiveWorkoutSessionLogRef={
 							lastActiveWorkoutSessionLogRef.current
@@ -79,6 +116,12 @@ export default function Workouts() {
 					</div>
 				)}
 			</div>
+
+			{queuedWorkoutSessionsCount > 0 && (
+				<div className="fixed bottom-5 left-1/2 -translate-x-1/2">
+					<span className="text-error">{`Failed to save ${queuedWorkoutSessionsCount} workout sessions`}</span>
+				</div>
+			)}
 
 			<div>
 				<dialog

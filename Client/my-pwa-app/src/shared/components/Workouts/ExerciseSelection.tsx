@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { filterExercisesByName } from "../../../utils/offlineExercise";
+import { filterExercisesByName } from "../../../utils/offlineExercisesUtils";
 import { ExerciseData } from "../../../types/ExerciseDataType";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -44,7 +44,8 @@ export default function ExerciseSelection() {
 		resolver: zodResolver(exerciseSelectionSchema),
 	});
 
-	const { setUserExercises, userExercises } = useUserExercises();
+	const { setUserExercises, userExercises, workoutDuration } =
+		useUserExercises();
 	const { addNotification } = useNotification();
 
 	const [currentSelectedExercises, setCurrentSelectedExercises] = useState<
@@ -119,7 +120,10 @@ export default function ExerciseSelection() {
 		];
 
 		setUserExercises(updatedUserExercises);
-		saveActiveWorkoutSession({ exercises: updatedUserExercises });
+		saveActiveWorkoutSession({
+			duration: workoutDuration,
+			exercises: updatedUserExercises,
+		});
 		setCurrentSelectedExercises([]);
 
 		addNotification({

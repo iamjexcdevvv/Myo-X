@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import ExerciseSelection from "./ExerciseSelection";
 import UserExercises from "./UserExercises";
 import useUserExercises from "../../../hooks/useUserWorkoutSession";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { formatToMMSS } from "../../../utils/utils";
 import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
 import {
@@ -11,24 +11,28 @@ import {
 } from "../../../utils/workoutSessionUtils";
 import useNotification from "../../../hooks/useNotification";
 import { SaveWorkoutSessionLog } from "../../../services/LogWorkoutSessionService";
-import { queueWorkoutSession } from "../../../utils/offlineSync";
+import { queueWorkoutSession } from "../../../utils/syncUtils";
 
 export default function NewWorkout({
 	isNewWorkoutStarted,
 	lastActiveWorkoutSessionLogRef,
 	setIsNewWorkoutStarted,
+	setQueuedWorkoutSessionsCount,
 }: {
 	isNewWorkoutStarted: boolean;
 	lastActiveWorkoutSessionLogRef: ActiveWorkoutSession | null;
 	setIsNewWorkoutStarted: React.Dispatch<React.SetStateAction<boolean>>;
+	setQueuedWorkoutSessionsCount: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const { addNotification } = useNotification();
-	const { userExercises, setUserExercises } = useUserExercises();
+	const {
+		userExercises,
+		setUserExercises,
+		setWorkoutDuration,
+		workoutDuration,
+	} = useUserExercises();
 
 	const latestExercisesRef = useRef(userExercises);
-
-	const [workoutDuration, setWorkoutDuration] = useState(0);
-
 	const workoutDurationRef = useRef(0);
 
 	const handleAddSetClick = (exerciseId: string) => {
@@ -47,7 +51,10 @@ export default function NewWorkout({
 		});
 
 		setUserExercises(updatedUserExercises);
-		saveActiveWorkoutSession({ exercises: updatedUserExercises });
+		saveActiveWorkoutSession({
+			duration: workoutDuration,
+			exercises: updatedUserExercises,
+		});
 	};
 
 	const handleRemoveSetClick = (exerciseId: string, setId: number) => {
@@ -79,16 +86,13 @@ export default function NewWorkout({
 		});
 
 		setUserExercises(updatedUserExercises);
+		saveActiveWorkoutSession({
+			duration: workoutDuration,
+			exercises: updatedUserExercises,
+		});
 	};
 
 	const handleFinishWorkoutClick = async () => {
-		if (userExercises.length > 0) {
-			const response = await SaveWorkoutSessionLog(userExercises);
-
-			if (!response) queueWorkoutSession(userExercises);
-		}
-
-		setUserExercises([]);
 		clearLastActiveWorkoutSession();
 		setIsNewWorkoutStarted(false);
 		setWorkoutDuration(0);
@@ -99,6 +103,30 @@ export default function NewWorkout({
 			type: "success",
 			message: "Workout session has been finished",
 		});
+
+		if (userExercises.length > 0) {
+			const success = await SaveWorkoutSessionLog({
+				exercises: userExercises,
+			});
+
+			if (!success) {
+				queueWorkoutSession(userExercises);
+				setQueuedWorkoutSessionsCount((prev) => prev + 1);
+
+				addNotification({
+					type: "error",
+					message: "Failed to save workout session",
+				});
+				return;
+			}
+
+			addNotification({
+				type: "success",
+				message: "Workout session has been saved succesfully",
+			});
+
+			setUserExercises([]);
+		}
 	};
 
 	useEffect(() => {
@@ -107,7 +135,18 @@ export default function NewWorkout({
 			workoutDurationRef.current =
 				lastActiveWorkoutSessionLogRef.duration;
 		}
-	}, [lastActiveWorkoutSessionLogRef]);
+	}, [lastActiveWorkoutSessionLogRef, setWorkoutDuration]);
+
+	useEffect(() => {
+		return () => {
+			if (latestExercisesRef.current || workoutDurationRef.current) {
+				saveActiveWorkoutSession({
+					duration: workoutDurationRef.current,
+					exercises: latestExercisesRef.current,
+				});
+			}
+		};
+	}, []);
 
 	useEffect(() => {
 		latestExercisesRef.current = userExercises;
@@ -128,15 +167,8 @@ export default function NewWorkout({
 
 		return () => {
 			if (interval !== null) clearInterval(interval);
-
-			if (latestExercisesRef.current.length > 0) {
-				saveActiveWorkoutSession({
-					duration: workoutDurationRef.current,
-					exercises: latestExercisesRef.current,
-				});
-			}
 		};
-	}, [isNewWorkoutStarted]);
+	}, [isNewWorkoutStarted, setWorkoutDuration]);
 
 	return (
 		<div className="space-y-2">

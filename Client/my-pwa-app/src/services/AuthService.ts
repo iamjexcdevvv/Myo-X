@@ -1,5 +1,5 @@
-import { getUserAccessToken } from "../utils/offlineAuth";
-import { queueLogout } from "../utils/offlineSync";
+import { isUserLastAuthenticated } from "../utils/offlineAuthUtils";
+import { queueLogout } from "../utils/syncUtils";
 
 export async function authenticateUser() {
 	try {
@@ -22,14 +22,8 @@ export async function authenticateUser() {
 	} catch (error) {
 		console.log(error);
 
-		const accessToken = await getUserAccessToken();
-
-		console.log(accessToken);
-
-		if (accessToken) return true;
+		return isUserLastAuthenticated();
 	}
-
-	return false;
 }
 
 export async function registerUser(
@@ -55,7 +49,7 @@ export async function registerUser(
 
 		return await request.json();
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 	}
 }
 
@@ -71,7 +65,7 @@ export async function refreshUserToken() {
 
 		return request.ok;
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 	}
 }
 
@@ -91,7 +85,7 @@ export async function userLogin(email: string, password: string) {
 
 		return await request.json();
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 	}
 }
 
@@ -109,7 +103,7 @@ export async function logoutUser() {
 			window.location.reload();
 		}
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		await queueLogout();
 	}
 }

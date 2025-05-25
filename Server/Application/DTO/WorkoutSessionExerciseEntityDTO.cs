@@ -1,6 +1,6 @@
 ﻿namespace Application.DTO
 {
-    public class WorkoutSessionExerciseEntityDTO
+    public record WorkoutSessionExerciseEntityDTO
     {
         public string ExerciseId { get; set; } = string.Empty;
         public string ExerciseName { get; set; } = string.Empty;

@@ -6,7 +6,6 @@ const ACTIVE_WORKOUT_ID = "ACTIVE_WORKOUT";
 export const saveActiveWorkoutSession = (
 	activeWorkoutSession: ActiveWorkoutSession
 ) => {
-	console.log("saveActiveWorkoutSession called");
 	let saveWorkoutTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	if (saveWorkoutTimeout) clearTimeout(saveWorkoutTimeout);
@@ -14,7 +13,7 @@ export const saveActiveWorkoutSession = (
 	saveWorkoutTimeout = setTimeout(() => {
 		activeWorkoutSession.id = ACTIVE_WORKOUT_ID;
 		db.userActiveWorkoutSession.put(activeWorkoutSession);
-	}, 1000);
+	}, 500);
 };
 
 export const getLastActiveWorkoutSessionLog = async () => {
@@ -22,6 +21,5 @@ export const getLastActiveWorkoutSessionLog = async () => {
 };
 
 export const clearLastActiveWorkoutSession = () => {
-	console.log("clearLastActiveWorkoutSession called");
 	db.userActiveWorkoutSession.clear();
 };

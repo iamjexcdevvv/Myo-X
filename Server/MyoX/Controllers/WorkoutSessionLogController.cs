@@ -5,7 +5,6 @@ using Application.Result.Common;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OutputCaching;
 
 namespace MyoX.Controllers
 {
@@ -21,7 +20,6 @@ namespace MyoX.Controllers
         }
 
         [HttpGet]
-        [OutputCache(PolicyName = "UserWorkoutSessions")]
         public async Task<ActionResult<List<WorkoutSessionEntityDTO>?>> GetUserLogWorkoutSessions()
         {
             return await _mediator.Send(new GetAllWorkoutSessionsQuery(HttpContext));

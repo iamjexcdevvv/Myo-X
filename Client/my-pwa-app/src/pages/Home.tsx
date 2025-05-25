@@ -1,3 +1,5 @@
+import "../styles/index.css";
+
 export default function Home() {
 	return (
 		<section className="w-full h-full flex flex-col justify-center items-center">

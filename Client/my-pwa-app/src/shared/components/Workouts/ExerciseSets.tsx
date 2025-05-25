@@ -4,12 +4,6 @@ import useUserWorkoutSession from "../../../hooks/useUserWorkoutSession";
 import { saveActiveWorkoutSession } from "../../../utils/workoutSessionUtils";
 import { Trash } from "lucide-react";
 
-// TODO: Check user online status & sync queued workout session by offline user
-// TODO: Bug fixing
-// TODO: Finish workout session
-// TODO: Rest timer
-// TODO: Delete exercise option and Rest timer option
-
 export default function ExerciseSets({
 	exercise,
 	index,
@@ -19,7 +13,8 @@ export default function ExerciseSets({
 	index: number;
 	handleRemoveSetClick: (exerciseId: string, setId: number) => void;
 }) {
-	const { userExercises, setUserExercises } = useUserWorkoutSession();
+	const { userExercises, setUserExercises, workoutDuration } =
+		useUserWorkoutSession();
 
 	const updateSets = useRef(false);
 
@@ -86,7 +81,10 @@ export default function ExerciseSets({
 		});
 
 		setUserExercises(updatedUserWorkoutSession);
-		saveActiveWorkoutSession({ exercises: updatedUserWorkoutSession });
+		saveActiveWorkoutSession({
+			duration: workoutDuration,
+			exercises: updatedUserWorkoutSession,
+		});
 	};
 
 	useEffect(() => {

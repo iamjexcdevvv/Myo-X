@@ -7,6 +7,8 @@ export default function UserExercisesProvider({
 }: React.PropsWithChildren) {
 	const [userExercises, setUserExercises] = useState<WorkoutSessionLog[]>([]);
 
+	const [workoutDuration, setWorkoutDuration] = useState(0);
+
 	// const startRestTimer = () => {
 
 	// };
@@ -15,7 +17,12 @@ export default function UserExercisesProvider({
 
 	return (
 		<UserWorkoutSessionContext.Provider
-			value={{ userExercises, setUserExercises }}
+			value={{
+				userExercises,
+				setUserExercises,
+				workoutDuration,
+				setWorkoutDuration,
+			}}
 		>
 			{children}
 		</UserWorkoutSessionContext.Provider>

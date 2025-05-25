@@ -4,7 +4,7 @@ import { z } from "zod";
 import { userLogin } from "../../services/AuthService";
 import { useForm } from "react-hook-form";
 import useAuth from "../../hooks/useAuth";
-import { saveUserAccessToken } from "../../utils/offlineAuth";
+import { saveUserAccessToken } from "../../utils/offlineAuthUtils";
 
 const loginSchema = z.object({
 	email: z

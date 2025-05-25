@@ -1,13 +1,10 @@
 import { WorkoutSessionLog } from "../types/WorkoutSessionLogType";
 
-export const SaveWorkoutSessionLog = async (
-	workoutSessionLog: WorkoutSessionLog[]
-) => {
+export const SaveWorkoutSessionLog = async (workoutSession: {
+	exercises: WorkoutSessionLog[];
+	workoutSessionDate?: string;
+}) => {
 	try {
-		const workoutSession = {
-			exercises: [...workoutSessionLog],
-		};
-
 		const request = await fetch(
 			`${import.meta.env.VITE_API_BASE_URL}/WorkoutSessionLog`,
 			{
@@ -22,7 +19,7 @@ export const SaveWorkoutSessionLog = async (
 
 		return request.ok;
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		return false;
 	}
 };
@@ -39,6 +36,6 @@ export const getAllUserWorkoutSessions = async () => {
 
 		return await request.json();
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 	}
 };

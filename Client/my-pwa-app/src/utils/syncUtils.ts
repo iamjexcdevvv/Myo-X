@@ -2,6 +2,7 @@ import db from "../database/offlineDB";
 import { logoutUser } from "../services/AuthService";
 import { SyncAction } from "../types/SyncActionType";
 import { WorkoutSessionLog } from "../types/WorkoutSessionLogType";
+import { getCurrentDateWithUserTimezone } from "./utils";
 
 export const queueLogout = async () => {
 	await db.syncQueue.add({
@@ -31,21 +32,23 @@ export const queueWorkoutSession = async (
 ) => {
 	await db.syncQueue.add({
 		action: "saveWorkoutSession",
-		payload: workoutSessionLog,
+		payload: {
+			exercises: workoutSessionLog,
+			workoutSessionDate: getCurrentDateWithUserTimezone(),
+		},
 	});
 };
 
 export const removeQueuedWorkoutSession = (id: number) => {
-	console.log(id);
 	db.syncQueue.delete(id);
 };
 
 export const getQueueWorkoutSessions = async () => {
-	const items = await db.syncQueue.toArray();
+	const queuedActions = await db.syncQueue.toArray();
 
-	if (items.length > 0) {
-		return items.filter((item) => item.action === "saveWorkoutSession");
-	}
+	const items = queuedActions.filter(
+		(item) => item.action === "saveWorkoutSession"
+	);
 
 	return items;
 };

@@ -3,7 +3,7 @@
     public record WorkoutSessionEntityDTO
     {
         public int Id { get; set; }
-        public DateTimeOffset WorkoutSessionDate { get; set; }
+        public DateTimeOffset? WorkoutSessionDate { get; set; }
 
         public List<WorkoutSessionExerciseEntityDTO
             > Exercises

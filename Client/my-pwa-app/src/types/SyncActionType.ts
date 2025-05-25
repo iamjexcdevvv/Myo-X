@@ -3,5 +3,8 @@ import { WorkoutSessionLog } from "./WorkoutSessionLogType";
 export type SyncAction = {
 	id?: number;
 	action: string;
-	payload?: WorkoutSessionLog[];
+	payload?: {
+		exercises: WorkoutSessionLog[];
+		workoutSessionDate: string;
+	};
 };

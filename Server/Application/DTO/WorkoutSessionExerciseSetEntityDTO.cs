@@ -1,6 +1,6 @@
 ﻿namespace Application.DTO
 {
-    public class WorkoutSessionExerciseSetEntityDTO
+    public record WorkoutSessionExerciseSetEntityDTO
     {
         public int Set { get; set; }
         public int Reps { get; set; }

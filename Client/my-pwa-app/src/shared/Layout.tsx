@@ -1,10 +1,14 @@
 import { useEffect } from "react";
 import Navigation from "./components/Navigation";
+import AlertNotification from "./components/Notification/AlertNotification";
+import AuthProvider from "./providers/AuthProvider";
+import NotificationProvider from "./providers/NotificationProvider";
+import UserExercisesProvider from "./providers/UserWorkoutSessionProvider";
+import { Outlet } from "react-router";
 import { registerSW } from "virtual:pwa-register";
 import { toast, ToastContainer } from "react-toastify";
-import AlertNotification from "./components/Notification/AlertNotification";
 
-export default function Layout({ children }: React.PropsWithChildren) {
+export default function Layout() {
 	useEffect(() => {
 		const updateSW = registerSW({
 			onNeedRefresh() {
@@ -35,11 +39,17 @@ export default function Layout({ children }: React.PropsWithChildren) {
 	}, []);
 
 	return (
-		<>
-			<Navigation />
-			<AlertNotification />
-			<main className="w-full h-[calc(100vh-72px)]">{children}</main>
-			<ToastContainer />
-		</>
+		<AuthProvider>
+			<NotificationProvider>
+				<UserExercisesProvider>
+					<Navigation />
+					<AlertNotification />
+					<main className="w-full h-[calc(100vh-72px)]">
+						<Outlet />
+					</main>
+					<ToastContainer />
+				</UserExercisesProvider>
+			</NotificationProvider>
+		</AuthProvider>
 	);
 }

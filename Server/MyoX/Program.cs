@@ -16,7 +16,7 @@ builder.Services.AddCorsMiddleware(builder.Configuration);
 
 builder.Services.AddAuthenticationMiddleware(builder.Configuration);
 
-builder.Services.AddOutputCacheMiddleware(builder.Configuration);
+builder.Services.AddMemoryCache();
 
 builder.Services.AddAuthorization();
 
@@ -40,8 +40,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
-
-app.UseOutputCache();
 
 app.UseAuthentication();
 app.UseAuthorization();

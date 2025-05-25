@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
 					],
 				},
 				workbox: {
-					globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+					globPatterns: ["**/*.{js,css,html,ico,png,svg,json}"],
 					navigateFallback: "/index.html",
 					navigateFallbackAllowlist: [
 						/^\/dashboard/,

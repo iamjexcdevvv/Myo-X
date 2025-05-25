@@ -6,7 +6,8 @@ import { ActiveWorkoutSession } from "../types/ActiveWorkoutSessionType";
 type UserAuth = {
 	id: string;
 	cipherText: string;
-	iv: number[];
+	iv: string;
+	salt: string;
 };
 
 type Exercises = {
@@ -20,7 +21,7 @@ const db = new Dexie("myo-x-db") as Dexie & {
 	syncQueue: Dexie.Table<SyncAction, number>;
 	userActiveWorkoutSession: Dexie.Table<ActiveWorkoutSession, string>;
 };
-db.version(9).stores({
+db.version(10).stores({
 	userAuth: "id",
 	syncQueue: "++id, action, payload",
 	userActiveWorkoutSession: "id, duration, exercises",
