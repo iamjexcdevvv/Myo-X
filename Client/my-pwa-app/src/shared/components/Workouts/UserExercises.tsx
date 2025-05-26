@@ -1,19 +1,24 @@
 import { AlarmClock, Plus, Settings2 } from "lucide-react";
 import { WorkoutSessionLog } from "../../../types/WorkoutSessionLogType";
 import ExerciseSets from "./ExerciseSets";
-import { useState } from "react";
+import React, { useState } from "react";
 import OptionMenu from "./Menu/OptionMenu";
 import ExerciseOptionMenu from "./Menu/ExerciseOptionMenu";
 import RestTimerOptionMenu from "./Menu/RestTimerOptionMenu";
+import { formatTime } from "../../../utils/utils";
 
 export default function UserExercises({
 	exercise,
 	handleAddSetClick,
 	handleRemoveSetClick,
+	setToggleRestTimer,
+	setRestTimeLeft,
 }: {
 	exercise: WorkoutSessionLog;
 	handleAddSetClick: (exerciseId: string) => void;
 	handleRemoveSetClick: (exerciseId: string, setId: number) => void;
+	setToggleRestTimer: React.Dispatch<React.SetStateAction<boolean>>;
+	setRestTimeLeft: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const [optionType, setOptionType] = useState<"rest" | "exercise" | null>(
 		null
@@ -43,7 +48,11 @@ export default function UserExercises({
 							className="flex space-x-1 text-sm items-center text-primary font-medium"
 						>
 							<AlarmClock />
-							<span>Rest Timer: OFF</span>
+							<span>{`Rest Timer: ${
+								!exercise.restTimer
+									? "OFF"
+									: formatTime(exercise.restTimer)
+							}`}</span>
 						</button>
 					</div>
 				</div>
@@ -60,6 +69,8 @@ export default function UserExercises({
 							exercise={exercise}
 							index={index}
 							handleRemoveSetClick={handleRemoveSetClick}
+							setToggleRestTimer={setToggleRestTimer}
+							setRestTimeLeft={setRestTimeLeft}
 						/>
 					))}
 					<div>
@@ -87,7 +98,12 @@ export default function UserExercises({
 				{optionType === "exercise" && (
 					<ExerciseOptionMenu exercise={exercise} />
 				)}
-				{optionType === "rest" && <RestTimerOptionMenu />}
+				{optionType === "rest" && (
+					<RestTimerOptionMenu
+						setToggleMenu={setToggleMenu}
+						exercise={exercise}
+					/>
+				)}
 			</OptionMenu>
 
 			{toggleMenu && (

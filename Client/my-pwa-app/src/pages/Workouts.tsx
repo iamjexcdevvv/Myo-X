@@ -99,10 +99,10 @@ export default function Workouts() {
 							setQueuedWorkoutSessionsCount
 						}
 						setIsNewWorkoutStarted={setIsNewWorkoutStarted}
+						isNewWorkoutStarted={isNewWorkoutStarted}
 						lastActiveWorkoutSessionLogRef={
 							lastActiveWorkoutSessionLogRef.current
 						}
-						isNewWorkoutStarted={isNewWorkoutStarted}
 					/>
 				) : (
 					<div>

@@ -1,10 +1,10 @@
 import { Plus } from "lucide-react";
 import ExerciseSelection from "./ExerciseSelection";
 import UserExercises from "./UserExercises";
-import useUserExercises from "../../../hooks/useUserWorkoutSession";
-import { useEffect, useRef } from "react";
+import useUserWorkoutSession from "../../../hooks/useUserWorkoutSession";
+import React, { useEffect, useRef, useState } from "react";
 import { formatToMMSS } from "../../../utils/utils";
-import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
+// import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
 import {
 	clearLastActiveWorkoutSession,
 	saveActiveWorkoutSession,
@@ -12,17 +12,19 @@ import {
 import useNotification from "../../../hooks/useNotification";
 import { SaveWorkoutSessionLog } from "../../../services/LogWorkoutSessionService";
 import { queueWorkoutSession } from "../../../utils/syncUtils";
+import RestTimer from "./RestTimer";
+import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
 
 export default function NewWorkout({
 	isNewWorkoutStarted,
-	lastActiveWorkoutSessionLogRef,
 	setIsNewWorkoutStarted,
 	setQueuedWorkoutSessionsCount,
+	lastActiveWorkoutSessionLogRef,
 }: {
 	isNewWorkoutStarted: boolean;
-	lastActiveWorkoutSessionLogRef: ActiveWorkoutSession | null;
 	setIsNewWorkoutStarted: React.Dispatch<React.SetStateAction<boolean>>;
 	setQueuedWorkoutSessionsCount: React.Dispatch<React.SetStateAction<number>>;
+	lastActiveWorkoutSessionLogRef: ActiveWorkoutSession | null;
 }) {
 	const { addNotification } = useNotification();
 	const {
@@ -30,10 +32,17 @@ export default function NewWorkout({
 		setUserExercises,
 		setWorkoutDuration,
 		workoutDuration,
-	} = useUserExercises();
+	} = useUserWorkoutSession();
 
 	const latestExercisesRef = useRef(userExercises);
 	const workoutDurationRef = useRef(0);
+
+	const [toggleRestTimer, setToggleRestTimer] = useState(false);
+	const [restTimeLeft, setRestTimeLeft] = useState(0);
+
+	const restTimerInterval = useRef<ReturnType<typeof setInterval> | null>(
+		null
+	);
 
 	const handleAddSetClick = (exerciseId: string) => {
 		const updatedUserExercises = userExercises.map((ex) => {
@@ -96,8 +105,11 @@ export default function NewWorkout({
 		clearLastActiveWorkoutSession();
 		setIsNewWorkoutStarted(false);
 		setWorkoutDuration(0);
-		workoutDurationRef.current = 0;
-		latestExercisesRef.current = [];
+
+		if (lastActiveWorkoutSessionLogRef) {
+			lastActiveWorkoutSessionLogRef.duration = 0;
+			lastActiveWorkoutSessionLogRef.exercises = [];
+		}
 
 		addNotification({
 			type: "success",
@@ -128,6 +140,12 @@ export default function NewWorkout({
 			setUserExercises([]);
 		}
 	};
+
+	useEffect(() => {
+		return () => {
+			setWorkoutDuration(0);
+		};
+	}, [setWorkoutDuration]);
 
 	useEffect(() => {
 		if (lastActiveWorkoutSessionLogRef?.duration) {
@@ -170,6 +188,33 @@ export default function NewWorkout({
 		};
 	}, [isNewWorkoutStarted, setWorkoutDuration]);
 
+	useEffect(() => {
+		if (toggleRestTimer) {
+			if (restTimerInterval.current)
+				clearInterval(restTimerInterval.current);
+
+			restTimerInterval.current = setInterval(() => {
+				setRestTimeLeft((prev) => {
+					if (prev <= 0) {
+						setToggleRestTimer(false);
+
+						if (restTimerInterval.current)
+							clearInterval(restTimerInterval.current);
+
+						return 0;
+					}
+
+					return prev - 1;
+				});
+			}, 1000);
+		}
+
+		return () => {
+			if (restTimerInterval.current !== null)
+				clearInterval(restTimerInterval.current);
+		};
+	}, [toggleRestTimer]);
+
 	return (
 		<div className="space-y-2">
 			<h1 className="text-2xl">New Workout</h1>
@@ -203,6 +248,8 @@ export default function NewWorkout({
 								exercise={exercise}
 								handleAddSetClick={handleAddSetClick}
 								handleRemoveSetClick={handleRemoveSetClick}
+								setToggleRestTimer={setToggleRestTimer}
+								setRestTimeLeft={setRestTimeLeft}
 							/>
 						);
 					})}
@@ -213,6 +260,15 @@ export default function NewWorkout({
 				<div className="fixed top-12 left-1/2 -translate-x-1/2">
 					<span>{`Duration: ${formatToMMSS(workoutDuration)}`}</span>
 				</div>
+			)}
+
+			{toggleRestTimer && (
+				<RestTimer
+					restTimeLeft={restTimeLeft}
+					setToggleRestTimer={setToggleRestTimer}
+					restTimerInterval={restTimerInterval}
+					setRestTimeLeft={setRestTimeLeft}
+				/>
 			)}
 		</div>
 	);

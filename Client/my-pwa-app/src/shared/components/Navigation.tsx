@@ -26,7 +26,7 @@ export default function Navigation() {
 		<>
 			<header className="w-full bg-base-300 h-[72px] px-6 flex items-center">
 				<div className="flex items-center w-full h-full space-x-4">
-					<div>
+					<div className="lg:hidden">
 						<button onClick={handleClick}>
 							<Menu />
 						</button>
@@ -51,14 +51,14 @@ export default function Navigation() {
 			<div
 				className={`fixed top-0 ${
 					showMenu ? "left-0" : "-left-full"
-				} transition-all duration-300 bg-base-200 w-[80%] h-screen px-6 py-3 space-y-13 z-50`}
+				} transition-all duration-300 bg-base-200 w-[80%] h-screen px-6 py-3 space-y-13 z-50 lg:left-0 lg:w-[35%]`}
 			>
 				<div className="flex justify-between items-center">
 					<div>
 						<Logo />
 					</div>
 
-					<div>
+					<div className="lg:hidden">
 						<button onClick={handleClick}>
 							<X />
 						</button>

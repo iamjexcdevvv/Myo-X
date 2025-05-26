@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { WorkoutSessionLog } from "../../../types/WorkoutSessionLogType";
 import useUserWorkoutSession from "../../../hooks/useUserWorkoutSession";
 import { saveActiveWorkoutSession } from "../../../utils/workoutSessionUtils";
@@ -8,10 +8,14 @@ export default function ExerciseSets({
 	exercise,
 	index,
 	handleRemoveSetClick,
+	setToggleRestTimer,
+	setRestTimeLeft,
 }: {
 	exercise: WorkoutSessionLog;
 	index: number;
 	handleRemoveSetClick: (exerciseId: string, setId: number) => void;
+	setToggleRestTimer: React.Dispatch<React.SetStateAction<boolean>>;
+	setRestTimeLeft: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const { userExercises, setUserExercises, workoutDuration } =
 		useUserWorkoutSession();
@@ -41,6 +45,13 @@ export default function ExerciseSets({
 		const updatedExerciseSets = exercise.sets.map((set) => {
 			if (set.set === setId) {
 				set.finished = !set.finished;
+
+				if (set.finished) {
+					if (exercise.restTimer) {
+						setRestTimeLeft(exercise.restTimer);
+						setToggleRestTimer(true);
+					}
+				}
 			}
 			return set;
 		});
