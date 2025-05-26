@@ -2,10 +2,10 @@
 {
     public record WorkoutSessionExerciseEntityDTO
     {
-        public string ExerciseId { get; set; } = string.Empty;
-        public string ExerciseName { get; set; } = string.Empty;
-        public int RepRangeStart { get; set; }
-        public int RepRangeEnd { get; set; }
-        public List<WorkoutSessionExerciseSetEntityDTO> Sets { get; set; } = new List<WorkoutSessionExerciseSetEntityDTO>();
+        public string ExerciseId { get; init; } = string.Empty;
+        public string ExerciseName { get; init; } = string.Empty;
+        public int RepRangeStart { get; init; }
+        public int RepRangeEnd { get; init; }
+        public List<WorkoutSessionExerciseSetEntityDTO> Sets { get; init; } = new List<WorkoutSessionExerciseSetEntityDTO>();
     }
 }

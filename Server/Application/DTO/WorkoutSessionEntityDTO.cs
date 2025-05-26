@@ -2,11 +2,11 @@
 {
     public record WorkoutSessionEntityDTO
     {
-        public int Id { get; set; }
-        public DateTimeOffset? WorkoutSessionDate { get; set; }
+        public int Id { get; init; }
+        public DateTimeOffset? WorkoutSessionDate { get; init; }
 
         public List<WorkoutSessionExerciseEntityDTO
             > Exercises
-        { get; set; } = new List<WorkoutSessionExerciseEntityDTO>();
+        { get; init; } = new List<WorkoutSessionExerciseEntityDTO>();
     }
 }

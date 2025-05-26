@@ -2,9 +2,9 @@
 {
     public record WorkoutSessionExerciseSetEntityDTO
     {
-        public int Set { get; set; }
-        public int Reps { get; set; }
-        public int Load { get; set; }
-        public int RIR { get; set; }
+        public int Set { get; init; }
+        public int Reps { get; init; }
+        public int Load { get; init; }
+        public int RIR { get; init; }
     }
 }
