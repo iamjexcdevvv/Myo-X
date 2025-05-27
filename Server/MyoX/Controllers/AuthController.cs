@@ -1,9 +1,8 @@
 ﻿using Application.DTO;
-using Application.Features.Command;
+using Application.Features.Auth;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace MyoX.Controllers
 {

@@ -2,7 +2,7 @@
 using Mediator;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Features.Query
+namespace Application.Features.WorkoutSession.Query
 {
     public record GetAllWorkoutSessionsQuery(HttpContext HttpContext) : IQuery<List<WorkoutSessionEntityDTO>>;
 }

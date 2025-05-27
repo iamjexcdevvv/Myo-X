@@ -4,7 +4,7 @@ using MapsterMapper;
 using Mediator;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Application.Features.Query
+namespace Application.Features.WorkoutSession.Query
 {
     public class GetAllWorkoutSessionsQueryHandler : IQueryHandler<GetAllWorkoutSessionsQuery, List<WorkoutSessionEntityDTO>>
     {

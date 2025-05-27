@@ -7,7 +7,7 @@ using FluentValidation.Results;
 using MapsterMapper;
 using Mediator;
 
-namespace Application.Features.Command
+namespace Application.Features.Auth
 {
     public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, ResultResponse>
     {

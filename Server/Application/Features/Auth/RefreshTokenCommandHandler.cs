@@ -1,10 +1,11 @@
 ﻿using Application.Result;
+using Application.Result.Common;
 using Domain.Service;
 using Mediator;
 
-namespace Application.Features.Command
+namespace Application.Features.Auth
 {
-    public class RefreshTokenCommandHandler : ICommandHandler<RefreshTokenCommand, TokenResultResponse>
+    public class RefreshTokenCommandHandler : ICommandHandler<RefreshTokenCommand, ResultResponse>
     {
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
@@ -13,13 +14,13 @@ namespace Application.Features.Command
             _userRepository = userRepository;
             _tokenService = tokenService;
         }
-        public async ValueTask<TokenResultResponse> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
+        public async ValueTask<ResultResponse> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
         {
             var refreshToken = command.HttpContext.Request.Cookies["Myo-X-Refresh-Token"];
             
             if (refreshToken is null)
             {
-                return new TokenResultResponse
+                return new ResultResponse
                 {
                     Success = false,
                 };
@@ -29,7 +30,7 @@ namespace Application.Features.Command
 
             if (user is null || user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
-                return new TokenResultResponse
+                return new ResultResponse
                 {
                     Success = false,
                 };
@@ -37,7 +38,7 @@ namespace Application.Features.Command
 
             string accessToken = _tokenService.GenerateJWTAccessToken(user);
 
-            return new TokenResultResponse
+            return new ResultResponse
             {
                 Success = true,
                 AccessToken = accessToken

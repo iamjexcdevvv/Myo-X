@@ -1,6 +1,6 @@
 ﻿using Application.DTO;
-using Application.Features.Command;
-using Application.Features.Query;
+using Application.Features.WorkoutSession.Command;
+using Application.Features.WorkoutSession.Query;
 using Application.Result.Common;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;

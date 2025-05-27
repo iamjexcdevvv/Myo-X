@@ -5,7 +5,7 @@ using MapsterMapper;
 using Mediator;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Application.Features.Command
+namespace Application.Features.WorkoutSession.Command
 {
     public class SaveWorkoutSessionLogCommandHandler : ICommandHandler<SaveWorkoutSessionLogCommand, ResultResponse>
     {
