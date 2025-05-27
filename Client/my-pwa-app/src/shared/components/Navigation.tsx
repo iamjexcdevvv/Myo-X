@@ -1,26 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { logoutUser } from "../../services/AuthService";
 import { clearUserAccessToken } from "../../utils/offlineAuthUtils";
 import useAuth from "../../hooks/useAuth";
-import { Menu, X } from "lucide-react";
+import { Download, Menu, X } from "lucide-react";
 import Logo from "./Logo";
+
+interface BeforeInstallPromptEvent extends Event {
+	prompt(): Promise<void>;
+	userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
 
 export default function Navigation() {
 	const [showMenu, setShowMenu] = useState(false);
 	const { isAuthenticated, setIsAuthenticated } = useAuth();
 
-	function handleClick() {
-		setShowMenu((prev) => !prev);
-	}
+	const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+	const [isInstallable, setIsInstallable] = useState(false);
 
-	function handleLogoutClick() {
+	const handleInstallPrompt = () => {
+		if (!deferredPrompt) return;
+
+		const promptEvent = deferredPrompt as BeforeInstallPromptEvent;
+
+		promptEvent.prompt();
+
+		promptEvent.userChoice.then((result) => {
+			if (result.outcome === "dismissed") return;
+
+			setIsInstallable(false);
+			setDeferredPrompt(null);
+		});
+	};
+
+	const handleClick = () => {
+		setShowMenu((prev) => !prev);
+	};
+
+	const handleLogoutClick = () => {
 		if (isAuthenticated) {
 			logoutUser();
 			setIsAuthenticated(false);
 			clearUserAccessToken();
 		}
-	}
+	};
+
+	const handleBeforeInstallPrompt = (e: Event) => {
+		e.preventDefault();
+		setDeferredPrompt(e);
+		setIsInstallable(true);
+	};
+
+	useEffect(() => {
+		window.addEventListener(
+			"beforeinstallprompt",
+			handleBeforeInstallPrompt
+		);
+
+		return () => {
+			window.removeEventListener(
+				"beforeinstallprompt",
+				handleBeforeInstallPrompt
+			);
+		};
+	}, []);
 
 	return (
 		<>
@@ -35,7 +78,7 @@ export default function Navigation() {
 					<Logo />
 				</div>
 
-				<div>
+				<div className="flex space-x-5 items-center">
 					<div>
 						{!isAuthenticated ? (
 							<button>
@@ -45,6 +88,18 @@ export default function Navigation() {
 							<button onClick={handleLogoutClick}>Logout</button>
 						)}
 					</div>
+
+					{isInstallable && (
+						<div>
+							<button
+								onClick={handleInstallPrompt}
+								className="btn btn-primary flex items-center space-x-1"
+							>
+								<Download />
+								<span>Install</span>
+							</button>
+						</div>
+					)}
 				</div>
 			</header>
 

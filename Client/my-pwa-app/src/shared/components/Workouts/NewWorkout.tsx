@@ -257,7 +257,7 @@ export default function NewWorkout({
 			)}
 
 			{isNewWorkoutStarted && (
-				<div className="fixed top-12 left-1/2 -translate-x-1/2">
+				<div className="fixed top-3 left-1/2 -translate-x-1/2">
 					<span>{`Duration: ${formatToMMSS(workoutDuration)}`}</span>
 				</div>
 			)}
