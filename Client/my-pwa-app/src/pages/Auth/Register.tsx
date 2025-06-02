@@ -8,10 +8,7 @@ import useNotification from "../../hooks/useNotification";
 
 const registerSchema = z
 	.object({
-		email: z
-			.string()
-			.nonempty("Email is required")
-			.email("Invalid email format"),
+		username: z.string().nonempty("Username is required"),
 		password: z
 			.string()
 			.nonempty("Password is required")
@@ -40,16 +37,16 @@ export default function Register() {
 
 	async function onSubmit(data: ValidationSchemaType) {
 		const response = await registerUser(
-			data.email,
+			data.username,
 			data.password,
 			data.confirmPassword
 		);
 
 		if (!response.success) {
-			if ("Email" in response.errors) {
-				setError("email", {
+			if ("Username" in response.errors) {
+				setError("username", {
 					type: "server",
-					message: response.errors.Email[0],
+					message: response.errors.Username[0],
 				});
 			}
 		} else {
@@ -74,21 +71,22 @@ export default function Register() {
 				<form
 					onSubmit={handleSubmit(onSubmit)}
 					className="w-full h-full p-3 space-y-4"
+					method="post"
 				>
 					<div className="space-y-2">
 						<div>
 							<label className="floating-label">
-								<span>Email</span>
+								<span>Username</span>
 								<input
-									type="email"
-									placeholder="Email"
+									type="text"
+									placeholder="Username"
 									className="input input-md"
-									{...register("email")}
+									{...register("username")}
 								/>
 							</label>
-							{errors.email && (
+							{errors.username && (
 								<span className="text-error text-xs">
-									{errors.email.message}
+									{errors.username.message}
 								</span>
 							)}
 						</div>

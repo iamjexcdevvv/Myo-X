@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
 using Application.Validators;
-using Domain.Service;
+using Domain.Interfaces;
 using Application.Service;
 
 namespace Application

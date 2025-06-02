@@ -7,7 +7,8 @@ namespace MyoX.Middlewares
     {
         public static IServiceCollection AddControllersMiddleware(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddControllers()
+            services
+                    .AddControllers()
                     .AddJsonOptions(options =>
                     {
                         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;

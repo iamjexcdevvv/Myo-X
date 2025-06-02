@@ -2,8 +2,8 @@
 {
     public record RegisterDTO
     {
-        public string Email { get; init; } = string.Empty;
-        public string Password { get; init; } = string.Empty;
-        public string ConfirmPassword { get; init; } = string.Empty;
+        public required string Username { get; init; }
+        public required string Password { get; init; }
+        public required string ConfirmPassword { get; init; }
     }
 }

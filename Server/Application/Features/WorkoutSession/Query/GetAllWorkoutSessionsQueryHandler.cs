@@ -1,5 +1,5 @@
 ﻿using Application.DTO;
-using Domain.Service;
+using Domain.Interfaces;
 using MapsterMapper;
 using Mediator;
 using Microsoft.Extensions.Caching.Memory;

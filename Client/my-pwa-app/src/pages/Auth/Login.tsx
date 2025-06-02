@@ -7,10 +7,7 @@ import useAuth from "../../hooks/useAuth";
 import { saveUserAccessToken } from "../../utils/offlineAuthUtils";
 
 const loginSchema = z.object({
-	email: z
-		.string()
-		.nonempty("Email is required")
-		.email("Invalid email format"),
+	username: z.string().nonempty("Username is required"),
 	password: z.string().nonempty("Password is required"),
 });
 
@@ -30,7 +27,7 @@ export default function Login() {
 	const navigate = useNavigate();
 
 	async function onSubmit(data: ValidationSchemaType) {
-		const response = await userLogin(data.email, data.password);
+		const response = await userLogin(data.username, data.password);
 
 		if (!response.success) {
 			if ("Password" in response.errors) {
@@ -40,10 +37,10 @@ export default function Login() {
 				});
 			}
 
-			if ("Email" in response.errors) {
-				setError("email", {
+			if ("Username" in response.errors) {
+				setError("username", {
 					type: "server",
-					message: response.errors.Email[0],
+					message: response.errors.Username[0],
 				});
 			}
 		} else {
@@ -68,17 +65,17 @@ export default function Login() {
 					<div className="space-y-2">
 						<div>
 							<label className="floating-label">
-								<span>Email</span>
+								<span>Username</span>
 								<input
-									type="email"
-									placeholder="Email"
+									type="text"
+									placeholder="Username"
 									className="input input-md"
-									{...register("email")}
+									{...register("username")}
 								/>
 							</label>
-							{errors.email && (
+							{errors.username && (
 								<span className="text-error text-xs">
-									{errors.email.message}
+									{errors.username.message}
 								</span>
 							)}
 						</div>

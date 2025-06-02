@@ -1,6 +1,6 @@
-﻿namespace Application.Result.Common
+﻿namespace Application.DTO
 {
-    public class ResultResponse
+    public class ResultResponseDTO
     {
         public bool Success { get; set; }
         public Dictionary<string, List<string>>? Errors { get; set; }

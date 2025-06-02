@@ -27,7 +27,7 @@ export async function authenticateUser() {
 }
 
 export async function registerUser(
-	email: string,
+	username: string,
 	password: string,
 	confirmPassword: string
 ) {
@@ -40,7 +40,7 @@ export async function registerUser(
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					Email: email,
+					Username: username,
 					Password: password,
 					ConfirmPassword: confirmPassword,
 				}),
@@ -69,7 +69,7 @@ export async function refreshUserToken() {
 	}
 }
 
-export async function userLogin(email: string, password: string) {
+export async function userLogin(username: string, password: string) {
 	try {
 		const request = await fetch(
 			`${import.meta.env.VITE_API_BASE_URL}/auth/login`,
@@ -79,7 +79,10 @@ export async function userLogin(email: string, password: string) {
 					"Content-Type": "application/json",
 				},
 				credentials: "include",
-				body: JSON.stringify({ Email: email, Password: password }),
+				body: JSON.stringify({
+					Username: username,
+					Password: password,
+				}),
 			}
 		);
 

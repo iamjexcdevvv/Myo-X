@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Service;
+using Domain.Interfaces;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories
         }
         public async Task<UserEntity?> GetUserByEmailAsync(string email)
         {
-            return await _dbContext.Users.FirstOrDefaultAsync(user => user.Email.ToLower() == email.ToLower());
+            return await _dbContext.Users.FirstOrDefaultAsync(user => user.Username.ToLower() == email.ToLower());
         }
 
         public async Task<UserEntity?> GetUserByRefreshTokenAsync(string refreshToken)

@@ -7,9 +7,8 @@ namespace Application.Validators
     {
         public RegisterDTOValidator()
         {
-            RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email field is required")
-                .EmailAddress().WithMessage("Invalid email format");
+            RuleFor(x => x.Username)
+                .NotEmpty().WithMessage("Username field is required");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password field is required")

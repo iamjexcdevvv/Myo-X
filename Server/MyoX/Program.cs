@@ -1,11 +1,6 @@
 using Infrastructure;
 using Application;
 using Scalar.AspNetCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using MyoX.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);

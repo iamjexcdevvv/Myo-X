@@ -1,7 +1,6 @@
 ﻿using Application.DTO;
-using Application.Result.Common;
 using Domain.Entities;
-using Domain.Service;
+using Domain.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using MapsterMapper;
@@ -9,7 +8,7 @@ using Mediator;
 
 namespace Application.Features.Auth
 {
-    public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, ResultResponse>
+    public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, ResultResponseDTO>
     {
         private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
@@ -20,7 +19,7 @@ namespace Application.Features.Auth
             _mapper = mapper;
             _validator = validator;
         }
-        public async ValueTask<ResultResponse> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
+        public async ValueTask<ResultResponseDTO> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
         {
             ValidationResult result = await _validator.ValidateAsync(command.request);
 
@@ -31,23 +30,23 @@ namespace Application.Features.Auth
                     .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage)
                     .ToList());
 
-                return new ResultResponse
+                return new ResultResponseDTO
                 {
                     Success = false,
                     Errors = failures
                 };
             }
 
-            var isUserFound = await _userRepo.GetUserByEmailAsync(command.request.Email);
+            var isUserFound = await _userRepo.GetUserByEmailAsync(command.request.Username);
 
             if (isUserFound is not null)
             {
-                return new ResultResponse
+                return new ResultResponseDTO
                 {
                     Success = false,
                     Errors = new Dictionary<string, List<string>>
                     {
-                        { "Email", new List<string> { "This email is already been taken" } }
+                        { "Username", new List<string> { "This username is already been taken" } }
                     }
                 };
             }
@@ -57,7 +56,7 @@ namespace Application.Features.Auth
 
             await _userRepo.RegisterUser(newUser);
 
-            return new ResultResponse
+            return new ResultResponseDTO
             {
                 Success = true
             };

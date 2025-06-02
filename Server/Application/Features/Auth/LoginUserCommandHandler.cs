@@ -1,8 +1,6 @@
 ﻿using Application.DTO;
-using Application.Result;
-using Application.Result.Common;
 using Domain.Entities;
-using Domain.Service;
+using Domain.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using MapsterMapper;
@@ -10,7 +8,7 @@ using Mediator;
 
 namespace Application.Features.Auth
 {
-    public class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, ResultResponse>
+    public class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, ResultResponseDTO>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -23,7 +21,7 @@ namespace Application.Features.Auth
             _validator = validator;
             _tokenService = tokenService;
         }
-        public async ValueTask<ResultResponse> Handle(LoginUserCommand command, CancellationToken cancellationToken)
+        public async ValueTask<ResultResponseDTO> Handle(LoginUserCommand command, CancellationToken cancellationToken)
         {
             ValidationResult result = await _validator.ValidateAsync(command.request);
 
@@ -34,23 +32,23 @@ namespace Application.Features.Auth
                     .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage)
                     .ToList());
 
-                return new ResultResponse
+                return new ResultResponseDTO
                 {
                     Success = false,
                     Errors = failures
                 };
             }
 
-            var user = await _userRepository.GetUserByEmailAsync(command.request.Email);
+            var user = await _userRepository.GetUserByEmailAsync(command.request.Username);
 
             if (user is null)
             {
-                return new ResultResponse
+                return new ResultResponseDTO
                 {
                     Success = false,
                     Errors = new Dictionary<string, List<string>>
                     {
-                        { "Email", new List<string> { "Invalid email" } },
+                        { "Username", new List<string> { "Invalid username" } },
                         { "Password", new List<string> { "Invalid password" } }
                     }
                 };
@@ -58,7 +56,7 @@ namespace Application.Features.Auth
 
             if (!BCrypt.Net.BCrypt.Verify(command.request.Password, user.HashedPassword))
             {
-                return new ResultResponse
+                return new ResultResponseDTO
                 {
                     Success = false,
                     Errors = new Dictionary<string, List<string>>
@@ -75,7 +73,7 @@ namespace Application.Features.Auth
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await _userRepository.SaveUserDataChanges();
 
-            return new ResultResponse
+            return new ResultResponseDTO
             {
                 Success = true,
                 AccessToken = accessToken,

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MyoX.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -69,16 +70,15 @@ namespace MyoX.Controllers
             });
         }
 
-        [Authorize]
         [HttpPost("logout")]
         public IActionResult LogoutUser()
         {
+
             Response.Cookies.Delete(_configuration["jwt:access-token"] ?? throw new Exception("No access-token found in jwt key"));
             Response.Cookies.Delete(_configuration["jwt:refresh-token"] ?? throw new Exception("No access-token found in jwt key"));
             return Ok();
         }
 
-        [Authorize]
         [HttpGet("check")]
         public IActionResult AuthenticateUser()
         {

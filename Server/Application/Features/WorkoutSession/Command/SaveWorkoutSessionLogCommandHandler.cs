@@ -1,13 +1,13 @@
-﻿using Application.Result.Common;
+﻿using Application.DTO;
 using Domain.Entities;
-using Domain.Service;
+using Domain.Interfaces;
 using MapsterMapper;
 using Mediator;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Features.WorkoutSession.Command
 {
-    public class SaveWorkoutSessionLogCommandHandler : ICommandHandler<SaveWorkoutSessionLogCommand, ResultResponse>
+    public class SaveWorkoutSessionLogCommandHandler : ICommandHandler<SaveWorkoutSessionLogCommand, ResultResponseDTO>
     {
         private readonly IWorkoutSessionLogRepository _workoutSessionLogRepository;
         private readonly IUserRepository _userRepository;
@@ -20,13 +20,13 @@ namespace Application.Features.WorkoutSession.Command
             _userRepository = userRepository;
             _memoryCache = memoryCache;
         }
-        public async ValueTask<ResultResponse> Handle(SaveWorkoutSessionLogCommand command, CancellationToken cancellationToken)
+        public async ValueTask<ResultResponseDTO> Handle(SaveWorkoutSessionLogCommand command, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetUserByRefreshTokenAsync(command.HttpContext.Request.Cookies["Myo-X-Refresh-Token"]!);
 
             if (user is null)
             {
-                return new ResultResponse
+                return new ResultResponseDTO
                 {
                     Success = false
                 };
@@ -46,7 +46,7 @@ namespace Application.Features.WorkoutSession.Command
             _memoryCache.Remove(user.Id);
             //await _outputCacheStore.EvictByTagAsync("workout-sessions-cache", cancellationToken);
 
-            return new ResultResponse
+            return new ResultResponseDTO
             {
                 Success = true
             };

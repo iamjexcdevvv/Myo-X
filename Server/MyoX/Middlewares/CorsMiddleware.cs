@@ -12,7 +12,7 @@
                 {
                     policy.WithOrigins(allowedOrigins)
                     .WithMethods("POST", "GET")
-                    .WithHeaders("Authorization", "Content-Type")
+                    .WithHeaders("Authorization", "Content-Type", "X-CSRF-TOKEN")
                     .AllowCredentials();
                 });
             });
