@@ -1,0 +1,14 @@
+Server/.vs/
+Server/MyoX.API/bin
+Server/MyoX.API/obj
+*.json
+
+Server/MyoX.Application/bin
+Server/MyoX.Application/obj
+
+Server/MyoX.Domain/bin
+Server/MyoX.Domain/obj
+
+Server/MyoX.Infrastructure/bin
+Server/MyoX.Infrastructure/obj
+Server/MyoX.Infrastructure/Migrations

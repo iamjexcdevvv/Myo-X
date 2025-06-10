@@ -5,26 +5,26 @@ import useUserWorkoutSession from "../../../hooks/useUserWorkoutSession";
 import React, { useEffect, useRef, useState } from "react";
 import { formatToMMSS } from "../../../utils/utils";
 // import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
-import {
-	clearLastActiveWorkoutSession,
-	saveActiveWorkoutSession,
-} from "../../../utils/workoutSessionUtils";
+import { saveActiveWorkoutSession } from "../../../utils/workoutSessionUtils";
 import useNotification from "../../../hooks/useNotification";
 import { SaveWorkoutSessionLog } from "../../../services/LogWorkoutSessionService";
 import { queueWorkoutSession } from "../../../utils/syncUtils";
 import RestTimer from "./RestTimer";
 import { ActiveWorkoutSession } from "../../../types/ActiveWorkoutSessionType";
+import { WorkoutSessionLog } from "../../../types/WorkoutSessionLogType";
 
 export default function NewWorkout({
 	isNewWorkoutStarted,
 	setIsNewWorkoutStarted,
 	setQueuedWorkoutSessionsCount,
 	lastActiveWorkoutSessionLogRef,
+	clearLastActiveWorkoutSessionLog,
 }: {
 	isNewWorkoutStarted: boolean;
 	setIsNewWorkoutStarted: React.Dispatch<React.SetStateAction<boolean>>;
 	setQueuedWorkoutSessionsCount: React.Dispatch<React.SetStateAction<number>>;
 	lastActiveWorkoutSessionLogRef: ActiveWorkoutSession | null;
+	clearLastActiveWorkoutSessionLog: () => void;
 }) {
 	const { addNotification } = useNotification();
 	const {
@@ -34,8 +34,10 @@ export default function NewWorkout({
 		workoutDuration,
 	} = useUserWorkoutSession();
 
-	const latestExercisesRef = useRef(userExercises);
-	const workoutDurationRef = useRef(0);
+	const latestExercisesRef = useRef<WorkoutSessionLog[] | null>(
+		userExercises
+	);
+	const workoutDurationRef = useRef<number | null>(0);
 
 	const [toggleRestTimer, setToggleRestTimer] = useState(false);
 	const [restTimeLeft, setRestTimeLeft] = useState(0);
@@ -102,14 +104,12 @@ export default function NewWorkout({
 	};
 
 	const handleFinishWorkoutClick = async () => {
-		clearLastActiveWorkoutSession();
+		latestExercisesRef.current = null;
+		workoutDurationRef.current = null;
+
+		clearLastActiveWorkoutSessionLog();
 		setIsNewWorkoutStarted(false);
 		setWorkoutDuration(0);
-
-		if (lastActiveWorkoutSessionLogRef) {
-			lastActiveWorkoutSessionLogRef.duration = 0;
-			lastActiveWorkoutSessionLogRef.exercises = [];
-		}
 
 		addNotification({
 			type: "success",
@@ -159,8 +159,8 @@ export default function NewWorkout({
 		return () => {
 			if (latestExercisesRef.current || workoutDurationRef.current) {
 				saveActiveWorkoutSession({
-					duration: workoutDurationRef.current,
-					exercises: latestExercisesRef.current,
+					duration: workoutDurationRef.current || 0,
+					exercises: latestExercisesRef.current || [],
 				});
 			}
 		};

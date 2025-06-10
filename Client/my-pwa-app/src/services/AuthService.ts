@@ -56,7 +56,7 @@ export async function registerUser(
 export async function refreshUserToken() {
 	try {
 		const request = await fetch(
-			`${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`,
+			`${import.meta.env.VITE_API_BASE_URL}/auth/token/refresh`,
 			{
 				method: "POST",
 				credentials: "include",

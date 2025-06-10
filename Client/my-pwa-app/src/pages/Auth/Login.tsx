@@ -27,26 +27,29 @@ export default function Login() {
 	const navigate = useNavigate();
 
 	async function onSubmit(data: ValidationSchemaType) {
-		const response = await userLogin(data.username, data.password);
+		const { errors, isSuccess, accessToken } = await userLogin(
+			data.username,
+			data.password
+		);
 
-		if (!response.success) {
-			if ("Password" in response.errors) {
+		if (!isSuccess) {
+			if ("Password" in errors) {
 				setError("password", {
 					type: "server",
-					message: response.errors.Password[0],
+					message: errors.Password[0],
 				});
 			}
 
-			if ("Username" in response.errors) {
+			if ("Username" in errors) {
 				setError("username", {
 					type: "server",
-					message: response.errors.Username[0],
+					message: errors.Username[0],
 				});
 			}
 		} else {
 			navigate("/dashboard");
 			setIsAuthenticated(true);
-			saveUserAccessToken(response.accessToken);
+			saveUserAccessToken(accessToken);
 		}
 	}
 

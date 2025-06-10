@@ -14,9 +14,9 @@ export default function Dashboard() {
 
 	useEffect(() => {
 		async function displayWorkoutSessionHistory() {
-			const response = await getAllUserWorkoutSessions();
+			const { value } = await getAllUserWorkoutSessions();
 
-			setWorkoutSessionHistory(response);
+			setWorkoutSessionHistory(value);
 		}
 
 		displayWorkoutSessionHistory();

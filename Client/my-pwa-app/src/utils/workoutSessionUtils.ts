@@ -21,5 +21,6 @@ export const getLastActiveWorkoutSessionLog = async () => {
 };
 
 export const clearLastActiveWorkoutSession = () => {
+	console.log("clearLastActiveWorkoutSession called");
 	db.userActiveWorkoutSession.clear();
 };

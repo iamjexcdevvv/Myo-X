@@ -36,17 +36,17 @@ export default function Register() {
 	const { addNotification } = useNotification();
 
 	async function onSubmit(data: ValidationSchemaType) {
-		const response = await registerUser(
+		const { isSuccess, errors } = await registerUser(
 			data.username,
 			data.password,
 			data.confirmPassword
 		);
 
-		if (!response.success) {
-			if ("Username" in response.errors) {
+		if (!isSuccess) {
+			if ("Username" in errors) {
 				setError("username", {
 					type: "server",
-					message: response.errors.Username[0],
+					message: errors.Username[0],
 				});
 			}
 		} else {

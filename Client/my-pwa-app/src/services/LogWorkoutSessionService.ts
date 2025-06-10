@@ -6,7 +6,7 @@ export const SaveWorkoutSessionLog = async (workoutSession: {
 }) => {
 	try {
 		const request = await fetch(
-			`${import.meta.env.VITE_API_BASE_URL}/WorkoutSessionLog`,
+			`${import.meta.env.VITE_API_BASE_URL}/workout-session-logs`,
 			{
 				method: "POST",
 				headers: {
@@ -27,7 +27,7 @@ export const SaveWorkoutSessionLog = async (workoutSession: {
 export const getAllUserWorkoutSessions = async () => {
 	try {
 		const request = await fetch(
-			`${import.meta.env.VITE_API_BASE_URL}/WorkoutSessionLog`,
+			`${import.meta.env.VITE_API_BASE_URL}/workout-session-logs`,
 			{
 				method: "GET",
 				credentials: "include",

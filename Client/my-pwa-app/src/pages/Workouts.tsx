@@ -43,9 +43,13 @@ export default function Workouts() {
 		lastActiveWorkoutSessionModalRef.current?.close();
 	};
 
-	const onDiscardLastActiveWorkoutSession = () => {
+	const clearLastActiveWorkoutSessionLog = () => {
 		lastActiveWorkoutSessionLogRef.current = null;
 		clearLastActiveWorkoutSession();
+	};
+
+	const onDiscardLastActiveWorkoutSession = () => {
+		clearLastActiveWorkoutSessionLog();
 
 		addNotification({
 			type: "success",
@@ -102,6 +106,9 @@ export default function Workouts() {
 						isNewWorkoutStarted={isNewWorkoutStarted}
 						lastActiveWorkoutSessionLogRef={
 							lastActiveWorkoutSessionLogRef.current
+						}
+						clearLastActiveWorkoutSessionLog={
+							clearLastActiveWorkoutSessionLog
 						}
 					/>
 				) : (
