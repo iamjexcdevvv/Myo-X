@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+	themes: night --default;
+}
+
+@theme {
+	--font-primary: "Poppins", "sans-serif";
+}
+
+* {
+	font-family: var(--font-primary);
+}
