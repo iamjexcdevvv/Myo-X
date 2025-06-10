@@ -1,9 +1,8 @@
-# Features to be implement
+## Tech stack used in this project:
 
--   User Authentication
--   Workout Session
-
-# Plan after deployment
-
--   Mesocycle builder
--   Automatic progression (only works with mesocycle)
+- ASP.NET Core (.NET 8)
+- React.JS
+- Entity Framework Core
+- Microsoft SQL Server
+- Typescript
+- Clean architecture
